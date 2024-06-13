@@ -1,0 +1,29 @@
+{
+  "name": "@mijoco/stx_helpers",
+  "version": "0.0.5",
+  "main": "index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "pub": "npm publish --access public"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@stacks/connect": "^7.7.1",
+    "@stacks/network": "^6.13.0",
+    "tslib": "^2.6.3"
+  }
+}
