@@ -1,5 +1,8 @@
 import { UserSession } from '@stacks/connect';
+import { AddressObject } from '../sbtc';
 export declare const userSession: UserSession;
+export declare function fetchSbtcBalance(api: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
+export declare function getBalances(api: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
 export declare function isXverse(): boolean;
 export declare function isHiro(): boolean;
 export declare function isAsigna(): boolean;
@@ -14,3 +17,6 @@ export declare function loginStacks(callback: any): Promise<void>;
 export declare function loginStacksFromHeader(document: any): any;
 export declare function logUserOut(): void;
 export declare function checkAddressForNetwork(net: string, address: string | undefined): void;
+export declare function decodeStacksAddress(stxAddress: string): [number, string];
+export declare function encodeStacksAddress(network: string, b160Address: string): string;
+export declare function verifyStacksPricipal(network: string, stacksAddress?: string): string;

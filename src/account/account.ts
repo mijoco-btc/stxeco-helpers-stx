@@ -1,4 +1,7 @@
 import { AppConfig, UserSession, showConnect, getStacksProvider, type StacksProvider } from '@stacks/connect';
+import { c32address, c32addressDecode } from 'c32check';
+import { AddressObject } from '../sbtc';
+import { getBitcoinBalances } from '../custom-node';
 
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -10,6 +13,25 @@ function getProvider() {
 	const prod = (provider.getProductInfo) ? provider.getProductInfo() : undefined;
 	if (!prod) throw new Error('Provider not found')
 	return prod
+}
+
+export async function fetchSbtcBalance (api:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string) {
+	return await getBalances(api, contractId, stxAddress, cardinal, ordinal)
+}
+
+export async function getBalances(api:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string):Promise<AddressObject> {
+	let result = {} as AddressObject;
+	try {
+		result = await getBitcoinBalances(api, stxAddress, cardinal, ordinal);
+		try {
+			result.sBTCBalance = Number(result.stacksTokenInfo?.fungible_tokens[contractId + '::sbtc'].balance)
+		} catch (err) {
+			result.sBTCBalance = 0
+		}
+	} catch(err) {
+		console.log('Network down...');
+	}
+	return result;
 }
 
 export function isXverse() {
@@ -109,4 +131,37 @@ export function checkAddressForNetwork(net:string, address:string|undefined) {
 	}
 }
 
+const FORMAT = /[ `!@#$%^&*()_+=[\]{};':"\\|,<>/?~]/;
+
+export function decodeStacksAddress(stxAddress:string) {
+	if (!stxAddress) throw new Error('Needs a stacks address');
+	const decoded = c32addressDecode(stxAddress)
+	return decoded
+}
   
+export function encodeStacksAddress (network:string, b160Address:string) {
+	let version = 26
+	if (network === 'mainnet') version = 22
+	const address = c32address(version, b160Address) // 22 for mainnet
+	return address
+}
+
+export function verifyStacksPricipal(network:string, stacksAddress?:string) {
+	if (!stacksAddress) {
+	  throw new Error('Address not found');
+	} else if (FORMAT.test(stacksAddress)) {
+	  throw new Error('please remove white space / special characters');
+	}
+	try {
+	  const decoded = decodeStacksAddress(stacksAddress.split('.')[0]);
+	  if ((network === 'testnet' || network === 'devnet') && decoded[0] !== 26) {
+		throw new Error('Please enter a valid stacks blockchain testnet address');
+	  }
+	  if (network === 'mainnet' && decoded[0] !== 22) {
+		throw new Error('Please enter a valid stacks blockchain mainnet address');
+	  }
+	  return stacksAddress;
+	  } catch (err:any) {
+		  throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
+	  }
+}

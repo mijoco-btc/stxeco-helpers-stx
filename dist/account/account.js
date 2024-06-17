@@ -9,8 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkAddressForNetwork = exports.logUserOut = exports.loginStacksFromHeader = exports.loginStacks = exports.getStacksAddress = exports.isLoggedIn = exports.appDetails = exports.isLeather = exports.isAsigna = exports.isHiro = exports.isXverse = exports.userSession = void 0;
+exports.verifyStacksPricipal = exports.encodeStacksAddress = exports.decodeStacksAddress = exports.checkAddressForNetwork = exports.logUserOut = exports.loginStacksFromHeader = exports.loginStacks = exports.getStacksAddress = exports.isLoggedIn = exports.appDetails = exports.isLeather = exports.isAsigna = exports.isHiro = exports.isXverse = exports.getBalances = exports.fetchSbtcBalance = exports.userSession = void 0;
 const connect_1 = require("@stacks/connect");
+const c32check_1 = require("c32check");
+const custom_node_1 = require("../custom-node");
 const appConfig = new connect_1.AppConfig(['store_write', 'publish_data']);
 exports.userSession = new connect_1.UserSession({ appConfig }); // we will use this export from other files
 let provider;
@@ -22,6 +24,32 @@ function getProvider() {
         throw new Error('Provider not found');
     return prod;
 }
+function fetchSbtcBalance(api, contractId, stxAddress, cardinal, ordinal) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield getBalances(api, contractId, stxAddress, cardinal, ordinal);
+    });
+}
+exports.fetchSbtcBalance = fetchSbtcBalance;
+function getBalances(api, contractId, stxAddress, cardinal, ordinal) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        let result = {};
+        try {
+            result = yield (0, custom_node_1.getBitcoinBalances)(api, stxAddress, cardinal, ordinal);
+            try {
+                result.sBTCBalance = Number((_a = result.stacksTokenInfo) === null || _a === void 0 ? void 0 : _a.fungible_tokens[contractId + '::sbtc'].balance);
+            }
+            catch (err) {
+                result.sBTCBalance = 0;
+            }
+        }
+        catch (err) {
+            console.log('Network down...');
+        }
+        return result;
+    });
+}
+exports.getBalances = getBalances;
 function isXverse() {
     //const prov1 = (window as any).LeatherProvider //getProvider()
     //const prov2 = (window as any).XverseProvider //getProvider()
@@ -140,3 +168,41 @@ function checkAddressForNetwork(net, address) {
     }
 }
 exports.checkAddressForNetwork = checkAddressForNetwork;
+const FORMAT = /[ `!@#$%^&*()_+=[\]{};':"\\|,<>/?~]/;
+function decodeStacksAddress(stxAddress) {
+    if (!stxAddress)
+        throw new Error('Needs a stacks address');
+    const decoded = (0, c32check_1.c32addressDecode)(stxAddress);
+    return decoded;
+}
+exports.decodeStacksAddress = decodeStacksAddress;
+function encodeStacksAddress(network, b160Address) {
+    let version = 26;
+    if (network === 'mainnet')
+        version = 22;
+    const address = (0, c32check_1.c32address)(version, b160Address); // 22 for mainnet
+    return address;
+}
+exports.encodeStacksAddress = encodeStacksAddress;
+function verifyStacksPricipal(network, stacksAddress) {
+    if (!stacksAddress) {
+        throw new Error('Address not found');
+    }
+    else if (FORMAT.test(stacksAddress)) {
+        throw new Error('please remove white space / special characters');
+    }
+    try {
+        const decoded = decodeStacksAddress(stacksAddress.split('.')[0]);
+        if ((network === 'testnet' || network === 'devnet') && decoded[0] !== 26) {
+            throw new Error('Please enter a valid stacks blockchain testnet address');
+        }
+        if (network === 'mainnet' && decoded[0] !== 22) {
+            throw new Error('Please enter a valid stacks blockchain mainnet address');
+        }
+        return stacksAddress;
+    }
+    catch (err) {
+        throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
+    }
+}
+exports.verifyStacksPricipal = verifyStacksPricipal;

@@ -10,16 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getStackerInfo = exports.getBalanceAtHeight = exports.getBitcoinBalances = void 0;
-function getBitcoinBalances(revealerApi, stxAddress, cardinal, ordinal) {
+function getBitcoinBalances(api, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
-        const path = `${revealerApi}/sbtc/address/balances/${stxAddress}/${cardinal}/${ordinal}`;
+        const path = `${api}/sbtc/address/balances/${stxAddress}/${cardinal}/${ordinal}`;
         const response = yield fetch(path);
         const res = yield response.json();
         return res;
     });
 }
 exports.getBitcoinBalances = getBitcoinBalances;
-function getBalanceAtHeight(revealerApi, stxAddress, height) {
+function getBalanceAtHeight(api, stxAddress, height) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!stxAddress)
             return {
@@ -28,7 +28,7 @@ function getBalanceAtHeight(revealerApi, stxAddress, height) {
                     locked: 0,
                 }
             };
-        const path = `${revealerApi}/dao/balance/${stxAddress}/${height}`;
+        const path = `${api}/dao/balance/${stxAddress}/${height}`;
         try {
             const response = yield fetch(path);
             const res = yield response.json();
@@ -40,9 +40,9 @@ function getBalanceAtHeight(revealerApi, stxAddress, height) {
     });
 }
 exports.getBalanceAtHeight = getBalanceAtHeight;
-function getStackerInfo(revealerApi, address, cycle) {
+function getStackerInfo(api, address, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
-        const path = `${revealerApi}/pox/stacker-info/${address}/${cycle}`;
+        const path = `${api}/pox/stacker-info/${address}/${cycle}`;
         const response = yield fetch(path);
         const res = yield response.json();
         return res;
