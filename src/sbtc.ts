@@ -196,14 +196,30 @@ export type SbtcMiniContractsI = {
     cardinal: string;
     ordinal: string;
     sBTCBalance: number;
-    stxBalance: number;
-    stacksTokenInfo?: AddressHiroObject;
+    tokenBalances?: TokenBalances;
+    walletBalances?: WalletBalances;
+    stxBalance?: number;
     bnsNameInfo?: any;
     cardinalInfo?: AddressMempoolObject;
     ordinalInfo?: AddressMempoolObject;
     btcPubkeySegwit0?: string;
     btcPubkeySegwit1?: string;
   };
+
+  export type WalletBalances = {
+    stacks: {
+      address: string;
+      amount: number;
+    };
+    cardinal: {
+      address: string;
+      amount: number;
+    };
+    ordinal: {
+      address: string;
+      amount: number;
+    };
+  }
   
   export type AddressMempoolObject = {
     address: string;
@@ -223,7 +239,7 @@ export type SbtcMiniContractsI = {
     }
   }
   
-  export type AddressHiroObject = {
+  export type TokenBalances = {
       stx: {
         balance: number;
         total_sent: number;

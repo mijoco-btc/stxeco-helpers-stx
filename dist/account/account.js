@@ -9,10 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyStacksPricipal = exports.encodeStacksAddress = exports.decodeStacksAddress = exports.checkAddressForNetwork = exports.logUserOut = exports.loginStacksFromHeader = exports.loginStacks = exports.getStacksAddress = exports.isLoggedIn = exports.appDetails = exports.isLeather = exports.isAsigna = exports.isHiro = exports.isXverse = exports.getBalances = exports.fetchSbtcBalance = exports.userSession = void 0;
+exports.verifyStacksPricipal = exports.encodeStacksAddress = exports.decodeStacksAddress = exports.checkAddressForNetwork = exports.logUserOut = exports.loginStacksFromHeader = exports.loginStacks = exports.getStacksAddress = exports.isLoggedIn = exports.appDetails = exports.isLeather = exports.isAsigna = exports.isHiro = exports.isXverse = exports.getBalances = exports.userSession = void 0;
 const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
+const stacks_node_1 = require("../stacks-node");
 const appConfig = new connect_1.AppConfig(['store_write', 'publish_data']);
 exports.userSession = new connect_1.UserSession({ appConfig }); // we will use this export from other files
 let provider;
@@ -24,20 +25,15 @@ function getProvider() {
         throw new Error('Provider not found');
     return prod;
 }
-function fetchSbtcBalance(api, contractId, stxAddress, cardinal, ordinal) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield getBalances(api, contractId, stxAddress, cardinal, ordinal);
-    });
-}
-exports.fetchSbtcBalance = fetchSbtcBalance;
 function getBalances(api, contractId, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         let result = {};
         try {
-            result = yield (0, custom_node_1.getBitcoinBalances)(api, stxAddress, cardinal, ordinal);
+            result.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(api, stxAddress);
+            result.walletBalances = yield (0, custom_node_1.getWalletBalances)(api, stxAddress, cardinal, ordinal);
             try {
-                result.sBTCBalance = Number((_a = result.stacksTokenInfo) === null || _a === void 0 ? void 0 : _a.fungible_tokens[contractId + '::sbtc'].balance);
+                result.sBTCBalance = Number((_a = result.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[contractId + '::sbtc'].balance);
             }
             catch (err) {
                 result.sBTCBalance = 0;

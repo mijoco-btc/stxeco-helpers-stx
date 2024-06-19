@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchExchangeRates = exports.getPoxInfo = exports.getStacksBalances = exports.fetchStacksInfo = exports.isConstructed = exports.lookupContract = exports.getStacksNetwork = exports.fetchDataVar = void 0;
+exports.fetchExchangeRates = exports.getPoxInfo = exports.getTokenBalances = exports.fetchStacksInfo = exports.isConstructed = exports.lookupContract = exports.getStacksNetwork = exports.fetchDataVar = void 0;
 const network_1 = require("@stacks/network");
 function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -74,7 +74,7 @@ function fetchStacksInfo(stacksApi) {
     });
 }
 exports.fetchStacksInfo = fetchStacksInfo;
-function getStacksBalances(stacksApi, principal) {
+function getTokenBalances(stacksApi, principal) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
         const response = yield fetch(path);
@@ -82,7 +82,7 @@ function getStacksBalances(stacksApi, principal) {
         return res;
     });
 }
-exports.getStacksBalances = getStacksBalances;
+exports.getTokenBalances = getTokenBalances;
 function getPoxInfo(stacksApi) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/v2/pox`;
@@ -92,9 +92,9 @@ function getPoxInfo(stacksApi) {
     });
 }
 exports.getPoxInfo = getPoxInfo;
-function fetchExchangeRates(stacksApi) {
+function fetchExchangeRates(stxEcoApi) {
     return __awaiter(this, void 0, void 0, function* () {
-        const path = `${stacksApi}/bridge-api/v1/btc/tx/rates`;
+        const path = `${stxEcoApi}/btc/tx/rates`;
         try {
             const response = yield fetch(path);
             const res = yield response.json();

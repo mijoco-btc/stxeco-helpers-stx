@@ -1,7 +1,8 @@
 import { AppConfig, UserSession, showConnect, getStacksProvider, type StacksProvider } from '@stacks/connect';
 import { c32address, c32addressDecode } from 'c32check';
 import { AddressObject } from '../sbtc';
-import { getBitcoinBalances } from '../custom-node';
+import { getWalletBalances } from '../custom-node';
+import { getTokenBalances } from '../stacks-node';
 
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -15,16 +16,13 @@ function getProvider() {
 	return prod
 }
 
-export async function fetchSbtcBalance (api:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string) {
-	return await getBalances(api, contractId, stxAddress, cardinal, ordinal)
-}
-
 export async function getBalances(api:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string):Promise<AddressObject> {
 	let result = {} as AddressObject;
 	try {
-		result = await getBitcoinBalances(api, stxAddress, cardinal, ordinal);
+		result.tokenBalances = await getTokenBalances(api, stxAddress);
+		result.walletBalances = await getWalletBalances(api, stxAddress, cardinal, ordinal);
 		try {
-			result.sBTCBalance = Number(result.stacksTokenInfo?.fungible_tokens[contractId + '::sbtc'].balance)
+			result.sBTCBalance = Number(result.tokenBalances?.fungible_tokens[contractId + '::sbtc'].balance)
 		} catch (err) {
 			result.sBTCBalance = 0
 		}

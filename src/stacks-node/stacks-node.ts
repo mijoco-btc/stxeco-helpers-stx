@@ -1,4 +1,5 @@
 import { StacksMainnet, StacksMocknet, StacksTestnet } from "@stacks/network";
+import { TokenBalances } from "../sbtc";
  
 export async function fetchDataVar(stacksApi:string, contractAddress:string, contractName:string, dataVarName:string) {
   try {
@@ -48,7 +49,7 @@ export async function fetchStacksInfo(stacksApi:string) {
   const res = await response.json();
   return res;
 }
-export async function getStacksBalances(stacksApi:string, principal:string) {
+export async function getTokenBalances(stacksApi:string, principal:string):Promise<TokenBalances> {
   const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
   const response = await fetch(path);
   const res = await response.json();
@@ -62,8 +63,8 @@ export async function getPoxInfo(stacksApi:string) {
   return res;
 }
 
-export async function fetchExchangeRates(stacksApi:string) {
-  const path = `${stacksApi}/bridge-api/v1/btc/tx/rates`;
+export async function fetchExchangeRates(stxEcoApi:string) {
+  const path = `${stxEcoApi}/btc/tx/rates`;
   try {
     const response = await fetch(path);
     const res = await response.json();

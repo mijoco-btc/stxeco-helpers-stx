@@ -1,7 +1,6 @@
 import { UserSession } from '@stacks/connect';
 import { AddressObject } from '../sbtc';
 export declare const userSession: UserSession;
-export declare function fetchSbtcBalance(api: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
 export declare function getBalances(api: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
 export declare function isXverse(): boolean;
 export declare function isHiro(): boolean;
