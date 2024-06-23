@@ -1,33 +1,10 @@
-import { InFlight, GovernanceData, ProposalEvent, SoloPoolData } from './dao';
-import { PoxInfo } from './pox';
-import { VerifySignerKey } from './signer';
-
-export type SbtcConfig = {
-  inFlight?: InFlight;
-  proposals?: Array<ProposalEvent>;
-  currentProposal?:any;
-  soloPoolData?: SoloPoolData;
-  exchangeRates?: Array<ExchangeRate>;
-  btcFeeRates?: any;
-  loggedIn: boolean;
-  authHeader?:AuthorisationDataType|undefined;
-  keySets: { [key: string]: AddressObject; };
-  stxAddress?: string;
-  userSettings:SbtcUserSettingI;
-  sbtcContractData: SbtcContractDataType;
-  poxInfo:PoxInfo,
-  signerSignature: VerifySignerKey;
-  stacksInfo: {
-    burn_block_height: number;
-    server_version: string;
-    network_id: number;
-    stacks_tip_height: number;
-  };
-};
+import { GovernanceData } from './dao';
 
 export type SbtcUserSettingI = {
   executiveTeamMember: boolean;
   govTokens?: GovernanceData;
+  useOpDrop: boolean;
+  peggingIn: boolean;
   debugMode: boolean;
   testAddress?: string;
   currency: {
@@ -36,36 +13,6 @@ export type SbtcUserSettingI = {
     denomination: string;
   }
 }
-
-export type SbtcMiniContractsI = {
-    [key: string]: string
-  }
-  
-  export type SbtcMiniWalletI = {
-    cycle:number, version: string, hashbytes: string, address: string, pubkey: string
-  }
-  
-  export type SbtcMiniContractDataI = {
-    coordinator?: {
-        addr: {
-            value: string;
-        };
-        key: string;
-    };
-    currentPegWallet: SbtcMiniWalletI;
-    nextPegWallet: SbtcMiniWalletI;
-    protocolOwner: { stacksAddress: string, value: boolean }
-    contractOwner: string;
-    currentWindow?: number;
-    currentCyclePool?: any;
-    tokenUri?: string;
-    threshold?: number;
-    totalSupply?: number;
-    decimals?: number;
-    name?: string;
-    symbol?: string;
-    burnHeight?: number;
-  };
   
   export type SbtcClarityEvent = {
     _id: string;
@@ -126,12 +73,6 @@ export type SbtcMiniContractsI = {
     witness_version: number;
     witness_program: string;
   }
-  export type SbtcBalanceType = {
-      cardinal?: string;
-      ordinal?: string;
-    address:string;
-    balance:number;
-  };
   export type BridgeTransactionType = {
     _id?:string;
     eventId?:string;
