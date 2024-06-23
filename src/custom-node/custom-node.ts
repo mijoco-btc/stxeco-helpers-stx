@@ -11,7 +11,7 @@ export async function getWalletBalances(api:string, stxAddress:string, cardinal:
       address: rawBal.cardinalInfo?.address || 'unknown', 
       amount: bitcoinBalanceFromMempool(rawBal?.cardinalInfo)
     },
-    ordinal: { 
+    ordinal: {
       address: rawBal.ordinalInfo?.address || 'unknown', 
       amount: bitcoinBalanceFromMempool(rawBal?.ordinalInfo)
     }

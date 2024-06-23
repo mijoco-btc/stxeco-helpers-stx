@@ -3,6 +3,8 @@ import { c32address, c32addressDecode } from 'c32check';
 import { AddressObject } from '../sbtc';
 import { getWalletBalances } from '../custom-node';
 import { getTokenBalances } from '../stacks-node';
+import * as btc from '@scure/btc-signer';
+import { hex } from '@scure/base';
 
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -163,3 +165,28 @@ export function verifyStacksPricipal(network:string, stacksAddress?:string) {
 		  throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
 	  }
 }
+
+export function getPegWalletAddressFromPublicKey (network:string, sbtcWalletPublicKey:string) {
+	if (!sbtcWalletPublicKey) return
+	let net = getNet(network);
+	//if (network === 'development' || network === 'simnet') {
+	//	net = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0 }
+	//}
+	const fullPK = hex.decode(sbtcWalletPublicKey);
+	let xOnlyKey = fullPK;
+	if (fullPK.length === 33) {
+		xOnlyKey = fullPK.subarray(1)
+	}
+	//const addr = btc.Address(net).encode({type: 'tr', pubkey: xOnlyKey})
+	const trObj = btc.p2tr(xOnlyKey, undefined, net);
+	return trObj.address;
+}
+
+export function getNet(network:string) {
+	let net = btc.TEST_NETWORK;
+	if (network === 'devnet') net = REGTEST_NETWORK
+	else if (network === 'mainnet') net = btc.NETWORK
+	return net;
+}
+export const REGTEST_NETWORK: typeof btc.NETWORK = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0xc4 };
+

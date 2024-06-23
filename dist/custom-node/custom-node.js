@@ -9,7 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getStackerInfo = exports.getBalanceAtHeight = exports.fetchSbtcWalletAddress = exports.getWalletBalances = void 0;
+exports.getWalletBalances = getWalletBalances;
+exports.fetchSbtcWalletAddress = fetchSbtcWalletAddress;
+exports.getBalanceAtHeight = getBalanceAtHeight;
+exports.getStackerInfo = getStackerInfo;
 function getWalletBalances(api, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d;
@@ -30,7 +33,6 @@ function getWalletBalances(api, stxAddress, cardinal, ordinal) {
         };
     });
 }
-exports.getWalletBalances = getWalletBalances;
 function fetchSbtcWalletAddress(api) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${api}/sbtc/wallet-address`;
@@ -39,7 +41,6 @@ function fetchSbtcWalletAddress(api) {
         return res;
     });
 }
-exports.fetchSbtcWalletAddress = fetchSbtcWalletAddress;
 function bitcoinBalanceFromMempool(addressMempoolObject) {
     var _a;
     if (!addressMempoolObject)
@@ -77,7 +78,6 @@ function getBalanceAtHeight(api, stxAddress, height) {
         }
     });
 }
-exports.getBalanceAtHeight = getBalanceAtHeight;
 function getStackerInfo(api, address, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${api}/pox/stacker-info/${address}/${cycle}`;
@@ -86,4 +86,3 @@ function getStackerInfo(api, address, cycle) {
         return res;
     });
 }
-exports.getStackerInfo = getStackerInfo;

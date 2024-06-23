@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,11 +32,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyStacksPricipal = exports.encodeStacksAddress = exports.decodeStacksAddress = exports.checkAddressForNetwork = exports.logUserOut = exports.loginStacksFromHeader = exports.loginStacks = exports.getStacksAddress = exports.isLoggedIn = exports.appDetails = exports.isLeather = exports.isAsigna = exports.isHiro = exports.isXverse = exports.getBalances = exports.userSession = void 0;
+exports.REGTEST_NETWORK = exports.userSession = void 0;
+exports.getBalances = getBalances;
+exports.isXverse = isXverse;
+exports.isHiro = isHiro;
+exports.isAsigna = isAsigna;
+exports.isLeather = isLeather;
+exports.appDetails = appDetails;
+exports.isLoggedIn = isLoggedIn;
+exports.getStacksAddress = getStacksAddress;
+exports.loginStacks = loginStacks;
+exports.loginStacksFromHeader = loginStacksFromHeader;
+exports.logUserOut = logUserOut;
+exports.checkAddressForNetwork = checkAddressForNetwork;
+exports.decodeStacksAddress = decodeStacksAddress;
+exports.encodeStacksAddress = encodeStacksAddress;
+exports.verifyStacksPricipal = verifyStacksPricipal;
+exports.getPegWalletAddressFromPublicKey = getPegWalletAddressFromPublicKey;
+exports.getNet = getNet;
 const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
 const stacks_node_1 = require("../stacks-node");
+const btc = __importStar(require("@scure/btc-signer"));
+const base_1 = require("@scure/base");
 const appConfig = new connect_1.AppConfig(['store_write', 'publish_data']);
 exports.userSession = new connect_1.UserSession({ appConfig }); // we will use this export from other files
 let provider;
@@ -45,33 +87,27 @@ function getBalances(api, contractId, stxAddress, cardinal, ordinal) {
         return result;
     });
 }
-exports.getBalances = getBalances;
 function isXverse() {
     //const prov1 = (window as any).LeatherProvider //getProvider()
     //const prov2 = (window as any).XverseProvider //getProvider()
     const xverse = getProvider().name.toLowerCase().indexOf('xverse') > -1;
     return xverse;
 }
-exports.isXverse = isXverse;
 function isHiro() {
     return getProvider().name.toLowerCase().indexOf('hiro') > -1;
 }
-exports.isHiro = isHiro;
 function isAsigna() {
     return getProvider().name.toLowerCase().indexOf('asigna') > -1;
 }
-exports.isAsigna = isAsigna;
 function isLeather() {
     return getProvider().name.toLowerCase().indexOf('leather') > -1;
 }
-exports.isLeather = isLeather;
 function appDetails() {
     return {
         name: 'stxeco-launcher',
         icon: (window) ? window.location.origin + '/img/stx_eco_logo_icon_white.png' : '/img/stx_eco_logo_icon_white.png',
     };
 }
-exports.appDetails = appDetails;
 function isLoggedIn() {
     try {
         return exports.userSession.isUserSignedIn();
@@ -80,7 +116,6 @@ function isLoggedIn() {
         return false;
     }
 }
-exports.isLoggedIn = isLoggedIn;
 function getStacksAddress(network) {
     if (isLoggedIn()) {
         const userData = exports.userSession.loadUserData();
@@ -89,7 +124,6 @@ function getStacksAddress(network) {
     }
     return;
 }
-exports.getStacksAddress = getStacksAddress;
 function loginStacks(callback) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -120,7 +154,6 @@ function loginStacks(callback) {
         }
     });
 }
-exports.loginStacks = loginStacks;
 function loginStacksFromHeader(document) {
     const el = document.getElementById("connect-wallet");
     if (el)
@@ -128,11 +161,9 @@ function loginStacksFromHeader(document) {
     else
         return false;
 }
-exports.loginStacksFromHeader = loginStacksFromHeader;
 function logUserOut() {
     return exports.userSession.signUserOut();
 }
-exports.logUserOut = logUserOut;
 function checkAddressForNetwork(net, address) {
     if (!address || typeof address !== 'string')
         throw new Error('No address passed');
@@ -163,7 +194,6 @@ function checkAddressForNetwork(net, address) {
             throw new Error('Testnet stacks address passed to testnet app: ' + address);
     }
 }
-exports.checkAddressForNetwork = checkAddressForNetwork;
 const FORMAT = /[ `!@#$%^&*()_+=[\]{};':"\\|,<>/?~]/;
 function decodeStacksAddress(stxAddress) {
     if (!stxAddress)
@@ -171,7 +201,6 @@ function decodeStacksAddress(stxAddress) {
     const decoded = (0, c32check_1.c32addressDecode)(stxAddress);
     return decoded;
 }
-exports.decodeStacksAddress = decodeStacksAddress;
 function encodeStacksAddress(network, b160Address) {
     let version = 26;
     if (network === 'mainnet')
@@ -179,7 +208,6 @@ function encodeStacksAddress(network, b160Address) {
     const address = (0, c32check_1.c32address)(version, b160Address); // 22 for mainnet
     return address;
 }
-exports.encodeStacksAddress = encodeStacksAddress;
 function verifyStacksPricipal(network, stacksAddress) {
     if (!stacksAddress) {
         throw new Error('Address not found');
@@ -201,4 +229,28 @@ function verifyStacksPricipal(network, stacksAddress) {
         throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
     }
 }
-exports.verifyStacksPricipal = verifyStacksPricipal;
+function getPegWalletAddressFromPublicKey(network, sbtcWalletPublicKey) {
+    if (!sbtcWalletPublicKey)
+        return;
+    let net = getNet(network);
+    //if (network === 'development' || network === 'simnet') {
+    //	net = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0 }
+    //}
+    const fullPK = base_1.hex.decode(sbtcWalletPublicKey);
+    let xOnlyKey = fullPK;
+    if (fullPK.length === 33) {
+        xOnlyKey = fullPK.subarray(1);
+    }
+    //const addr = btc.Address(net).encode({type: 'tr', pubkey: xOnlyKey})
+    const trObj = btc.p2tr(xOnlyKey, undefined, net);
+    return trObj.address;
+}
+function getNet(network) {
+    let net = btc.TEST_NETWORK;
+    if (network === 'devnet')
+        net = exports.REGTEST_NETWORK;
+    else if (network === 'mainnet')
+        net = btc.NETWORK;
+    return net;
+}
+exports.REGTEST_NETWORK = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0xc4 };
