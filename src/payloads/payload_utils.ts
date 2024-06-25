@@ -336,42 +336,6 @@ export function readDepositValue(outputs:Array<any>) {
 	return amountSats;
 }
   
-/**
- * 
- * @param network 
- * @param txHex 
- * @returns 
- */
-export async function parsePayloadFromTransaction(api:string, network:string, txHex:string):Promise<PayloadType> {
-	const tx:btc.Transaction = btc.Transaction.fromRaw(hex.decode(txHex), {allowUnknowInput:true, allowUnknowOutput: true, allowUnknownOutputs: true, allowUnknownInputs: true})
-	const out0 = tx.getOutput(0);
-	const script0 = out0.script as Uint8Array
-	const spendScr = btc.OutScript.decode(script0);
-
-	let payload = {} as PayloadType;
-	if (spendScr.type === 'unknown') {
-		if (!tx.getOutput(1) || !tx.getOutput(1).script) throw new Error('no output 1')
-		payload = parsePayloadFromOutput(network, tx);
-		if (payload.opcode === '3C') payload.amountSats = Number(tx.getOutput(1).amount)
-	} else if (spendScr.type === 'tr') {
-		// op_drop commits do not contain the payload data !
-		const revealerTx:RevealerTransaction = await findTransactionByTxId(api, tx.id)
-		payload = {
-			//mode: RevealerTxModes.OP_DROP,
-			amountSats: ( revealerTx ) ? revealerTx.amountSats : 0,
-			opcode: '3C',
-		}
-	}
-	return payload;
-}
-
-export async function findTransactionByTxId(api:string, txId:string):Promise<any> {
-    const path = `${api}/transactions/get-revealer-transactions-by-txid/${txId}`;
-    const response = await fetch(path);
-    const res = await response.json();
-    return res;
-  }
-
 export function parsePayloadFromOutput(network:string, tx:btc.Transaction):PayloadType {
 	//const out0 = tx.getOutput(0)
 	//let d1 = out0.script?.subarray(5) as Uint8Array // strip the op type and data length

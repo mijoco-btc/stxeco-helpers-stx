@@ -16,8 +16,9 @@ exports.isConstructed = isConstructed;
 exports.fetchStacksInfo = fetchStacksInfo;
 exports.getTokenBalances = getTokenBalances;
 exports.getPoxInfo = getPoxInfo;
-exports.fetchExchangeRates = fetchExchangeRates;
+exports.callContractReadOnly = callContractReadOnly;
 const network_1 = require("@stacks/network");
+const transactions_1 = require("@stacks/transactions");
 function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -92,16 +93,36 @@ function getPoxInfo(stacksApi) {
         return res;
     });
 }
-function fetchExchangeRates(stxEcoApi) {
+function callContractReadOnly(stacksApi, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const path = `${stxEcoApi}/btc/tx/rates`;
+        const url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
+        let val;
         try {
-            const response = yield fetch(path);
-            const res = yield response.json();
-            return res;
+            console.log('callContractReadOnly: url: ', url);
+            const hiroApi1 = 'ae4ecb7b39e8fbc0326091ddac461bc6';
+            const response = yield fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-hiro-api-key': hiroApi1
+                },
+                body: JSON.stringify({
+                    arguments: data.functionArgs,
+                    sender: data.contractAddress,
+                })
+            });
+            val = yield response.json();
         }
         catch (err) {
-            return undefined;
+            console.error('callContractReadOnly4: ', err);
+        }
+        try {
+            const result = (0, transactions_1.cvToJSON)((0, transactions_1.deserializeCV)(val.result));
+            return result;
+        }
+        catch (err) {
+            console.error('Error: callContractReadOnly: ', val);
+            return val;
         }
     });
 }

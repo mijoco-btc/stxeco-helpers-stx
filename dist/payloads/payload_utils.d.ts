@@ -55,14 +55,6 @@ export declare function buildWithdrawPayload(network: string, amount: number, si
  */
 export declare function buildWithdrawPayloadOpDrop(network: string, amount: number, signature: string): string;
 export declare function readDepositValue(outputs: Array<any>): number;
-/**
- *
- * @param network
- * @param txHex
- * @returns
- */
-export declare function parsePayloadFromTransaction(api: string, network: string, txHex: string): Promise<PayloadType>;
-export declare function findTransactionByTxId(api: string, txId: string): Promise<any>;
 export declare function parsePayloadFromOutput(network: string, tx: btc.Transaction): PayloadType;
 /**
  *

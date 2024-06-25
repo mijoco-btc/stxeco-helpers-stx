@@ -8,3 +8,5 @@ export * from './signer';
 export * from './stacker';
 export * from './sbtc';
 export * from './revealer_types';
+export * from './sbtc-contract';
+export * from './mining_types';

@@ -1,5 +1,6 @@
 import { StacksMainnet, StacksMocknet, StacksTestnet } from "@stacks/network";
 import { TokenBalances } from "../sbtc";
+import { cvToJSON, deserializeCV } from "@stacks/transactions";
  
 export async function fetchDataVar(stacksApi:string, contractAddress:string, contractName:string, dataVarName:string) {
   try {
@@ -63,13 +64,33 @@ export async function getPoxInfo(stacksApi:string) {
   return res;
 }
 
-export async function fetchExchangeRates(stxEcoApi:string) {
-  const path = `${stxEcoApi}/btc/tx/rates`;
+export async function callContractReadOnly(stacksApi:string, data:any) {
+  const url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`
+  let val;
   try {
-    const response = await fetch(path);
-    const res = await response.json();
-    return res;
-  } catch(err) {
-    return undefined;
+
+    console.log('callContractReadOnly: url: ', url)
+    const hiroApi1 = 'ae4ecb7b39e8fbc0326091ddac461bc6'
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-hiro-api-key': hiroApi1
+      },
+      body: JSON.stringify({
+        arguments: data.functionArgs,
+        sender: data.contractAddress,
+      })
+    });
+    val = await response.json();
+  } catch (err) {
+    console.error('callContractReadOnly4: ', err);
+  }
+  try {
+    const result = cvToJSON(deserializeCV(val.result));
+    return result;
+  } catch (err:any) {
+    console.error('Error: callContractReadOnly: ', val)
+    return val
   }
 }

@@ -22,15 +22,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrincipalType = exports.PEGOUT_OPCODE = exports.PEGIN_OPCODE = exports.MAGIC_BYTES_MAINNET_NAK = exports.MAGIC_BYTES_MAINNET = exports.MAGIC_BYTES_TESTNET_NAK = exports.MAGIC_BYTES_TESTNET = void 0;
 exports.bitcoinToSats = bitcoinToSats;
@@ -46,8 +37,6 @@ exports.buildDepositPayloadOpDrop = buildDepositPayloadOpDrop;
 exports.buildWithdrawPayload = buildWithdrawPayload;
 exports.buildWithdrawPayloadOpDrop = buildWithdrawPayloadOpDrop;
 exports.readDepositValue = readDepositValue;
-exports.parsePayloadFromTransaction = parsePayloadFromTransaction;
-exports.findTransactionByTxId = findTransactionByTxId;
 exports.parsePayloadFromOutput = parsePayloadFromOutput;
 exports.getDataToSign = getDataToSign;
 exports.getStacksSimpleHashOfDataToSign = getStacksSimpleHashOfDataToSign;
@@ -383,46 +372,6 @@ function readDepositValue(outputs) {
         amountSats = bitcoinToSats(outputs[0].value);
     }
     return amountSats;
-}
-/**
- *
- * @param network
- * @param txHex
- * @returns
- */
-function parsePayloadFromTransaction(api, network, txHex) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const tx = btc.Transaction.fromRaw(base_1.hex.decode(txHex), { allowUnknowInput: true, allowUnknowOutput: true, allowUnknownOutputs: true, allowUnknownInputs: true });
-        const out0 = tx.getOutput(0);
-        const script0 = out0.script;
-        const spendScr = btc.OutScript.decode(script0);
-        let payload = {};
-        if (spendScr.type === 'unknown') {
-            if (!tx.getOutput(1) || !tx.getOutput(1).script)
-                throw new Error('no output 1');
-            payload = parsePayloadFromOutput(network, tx);
-            if (payload.opcode === '3C')
-                payload.amountSats = Number(tx.getOutput(1).amount);
-        }
-        else if (spendScr.type === 'tr') {
-            // op_drop commits do not contain the payload data !
-            const revealerTx = yield findTransactionByTxId(api, tx.id);
-            payload = {
-                //mode: RevealerTxModes.OP_DROP,
-                amountSats: (revealerTx) ? revealerTx.amountSats : 0,
-                opcode: '3C',
-            };
-        }
-        return payload;
-    });
-}
-function findTransactionByTxId(api, txId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const path = `${api}/transactions/get-revealer-transactions-by-txid/${txId}`;
-        const response = yield fetch(path);
-        const res = yield response.json();
-        return res;
-    });
 }
 function parsePayloadFromOutput(network, tx) {
     //const out0 = tx.getOutput(0)

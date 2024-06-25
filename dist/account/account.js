@@ -48,14 +48,12 @@ exports.checkAddressForNetwork = checkAddressForNetwork;
 exports.decodeStacksAddress = decodeStacksAddress;
 exports.encodeStacksAddress = encodeStacksAddress;
 exports.verifyStacksPricipal = verifyStacksPricipal;
-exports.getPegWalletAddressFromPublicKey = getPegWalletAddressFromPublicKey;
 exports.getNet = getNet;
 const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
 const stacks_node_1 = require("../stacks-node");
 const btc = __importStar(require("@scure/btc-signer"));
-const base_1 = require("@scure/base");
 const appConfig = new connect_1.AppConfig(['store_write', 'publish_data']);
 exports.userSession = new connect_1.UserSession({ appConfig }); // we will use this export from other files
 let provider;
@@ -67,13 +65,13 @@ function getProvider() {
         throw new Error('Provider not found');
     return prod;
 }
-function getBalances(api, contractId, stxAddress, cardinal, ordinal) {
+function getBalances(stacksApi, mempoolApi, contractId, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         let result = {};
         try {
-            result.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(api, stxAddress);
-            result.walletBalances = yield (0, custom_node_1.getWalletBalances)(api, stxAddress, cardinal, ordinal);
+            result.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(stacksApi, stxAddress);
+            result.walletBalances = yield (0, custom_node_1.getWalletBalances)(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
             try {
                 result.sBTCBalance = Number((_a = result.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[contractId + '::sbtc'].balance);
             }
@@ -228,22 +226,6 @@ function verifyStacksPricipal(network, stacksAddress) {
     catch (err) {
         throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
     }
-}
-function getPegWalletAddressFromPublicKey(network, sbtcWalletPublicKey) {
-    if (!sbtcWalletPublicKey)
-        return;
-    let net = getNet(network);
-    //if (network === 'development' || network === 'simnet') {
-    //	net = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0 }
-    //}
-    const fullPK = base_1.hex.decode(sbtcWalletPublicKey);
-    let xOnlyKey = fullPK;
-    if (fullPK.length === 33) {
-        xOnlyKey = fullPK.subarray(1);
-    }
-    //const addr = btc.Address(net).encode({type: 'tr', pubkey: xOnlyKey})
-    const trObj = btc.p2tr(xOnlyKey, undefined, net);
-    return trObj.address;
 }
 function getNet(network) {
     let net = btc.TEST_NETWORK;

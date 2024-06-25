@@ -57,7 +57,7 @@ export type SbtcContractDataType = {
     };
     contractId: string;
     contractOwner: string;
-    sbtcWalletAddress: string;
+    sbtcWalletAddress?: string;
     sbtcWalletPublicKey: string;
     numKeys?: number;
     numParties?: number;
@@ -281,3 +281,18 @@ export type TxMinedParameters = {
     txIdR: string;
     treeDepth: number;
 };
+export interface FeeEstimateResponse {
+    feeInfo: {
+        low_fee_per_kb: number;
+        medium_fee_per_kb: number;
+        high_fee_per_kb: number;
+    };
+}
+export interface BalanceI {
+    balance: number;
+}
+export interface UIObject {
+    keys: KeySet;
+    sbtcContractData: SbtcContractDataType;
+    rates: Array<ExchangeRate>;
+}

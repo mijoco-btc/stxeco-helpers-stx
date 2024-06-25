@@ -7,4 +7,4 @@ export declare function isConstructed(stacksApi: string, contract_id: string): P
 export declare function fetchStacksInfo(stacksApi: string): Promise<any>;
 export declare function getTokenBalances(stacksApi: string, principal: string): Promise<TokenBalances>;
 export declare function getPoxInfo(stacksApi: string): Promise<any>;
-export declare function fetchExchangeRates(stxEcoApi: string): Promise<any>;
+export declare function callContractReadOnly(stacksApi: string, data: any): Promise<any>;

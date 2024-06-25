@@ -18,11 +18,11 @@ function getProvider() {
 	return prod
 }
 
-export async function getBalances(api:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string):Promise<AddressObject> {
+export async function getBalances(stacksApi:string, mempoolApi:string, contractId:string, stxAddress:string, cardinal:string, ordinal:string):Promise<AddressObject> {
 	let result = {} as AddressObject;
 	try {
-		result.tokenBalances = await getTokenBalances(api, stxAddress);
-		result.walletBalances = await getWalletBalances(api, stxAddress, cardinal, ordinal);
+		result.tokenBalances = await getTokenBalances(stacksApi, stxAddress);
+		result.walletBalances = await getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
 		try {
 			result.sBTCBalance = Number(result.tokenBalances?.fungible_tokens[contractId + '::sbtc'].balance)
 		} catch (err) {
@@ -164,22 +164,6 @@ export function verifyStacksPricipal(network:string, stacksAddress?:string) {
 	  } catch (err:any) {
 		  throw new Error('Invalid stacks principal - please enter a valid ' + network + ' account or contract principal.');
 	  }
-}
-
-export function getPegWalletAddressFromPublicKey (network:string, sbtcWalletPublicKey:string) {
-	if (!sbtcWalletPublicKey) return
-	let net = getNet(network);
-	//if (network === 'development' || network === 'simnet') {
-	//	net = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0 }
-	//}
-	const fullPK = hex.decode(sbtcWalletPublicKey);
-	let xOnlyKey = fullPK;
-	if (fullPK.length === 33) {
-		xOnlyKey = fullPK.subarray(1)
-	}
-	//const addr = btc.Address(net).encode({type: 'tr', pubkey: xOnlyKey})
-	const trObj = btc.p2tr(xOnlyKey, undefined, net);
-	return trObj.address;
 }
 
 export function getNet(network:string) {

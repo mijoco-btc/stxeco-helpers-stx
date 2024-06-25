@@ -10,13 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletBalances = getWalletBalances;
-exports.fetchSbtcWalletAddress = fetchSbtcWalletAddress;
 exports.getBalanceAtHeight = getBalanceAtHeight;
-exports.getStackerInfo = getStackerInfo;
-function getWalletBalances(api, stxAddress, cardinal, ordinal) {
+const sbtc_contract_1 = require("../sbtc-contract");
+function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d;
-        const rawBal = yield fetchUserBalances(api, stxAddress, cardinal, ordinal);
+        const rawBal = yield (0, sbtc_contract_1.fetchUserBalances)(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
         return {
             stacks: {
                 address: stxAddress,
@@ -24,41 +23,22 @@ function getWalletBalances(api, stxAddress, cardinal, ordinal) {
             },
             cardinal: {
                 address: ((_c = rawBal.cardinalInfo) === null || _c === void 0 ? void 0 : _c.address) || 'unknown',
-                amount: bitcoinBalanceFromMempool(rawBal === null || rawBal === void 0 ? void 0 : rawBal.cardinalInfo)
+                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.cardinalInfo)
             },
             ordinal: {
                 address: ((_d = rawBal.ordinalInfo) === null || _d === void 0 ? void 0 : _d.address) || 'unknown',
-                amount: bitcoinBalanceFromMempool(rawBal === null || rawBal === void 0 ? void 0 : rawBal.ordinalInfo)
+                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.ordinalInfo)
             }
         };
     });
 }
-function fetchSbtcWalletAddress(api) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const path = `${api}/sbtc/wallet-address`;
-        const response = yield fetch(path);
-        const res = yield response.json();
-        return res;
-    });
-}
-function bitcoinBalanceFromMempool(addressMempoolObject) {
+function extractBtcBalance(addressMempoolObject) {
     var _a;
     if (!addressMempoolObject)
         return 0;
     return (((_a = addressMempoolObject === null || addressMempoolObject === void 0 ? void 0 : addressMempoolObject.chain_stats) === null || _a === void 0 ? void 0 : _a.funded_txo_sum) - addressMempoolObject.chain_stats.spent_txo_sum) || 0;
 }
-function fetchUserBalances(api, stxAddress, cardinal, ordinal) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const path = `${api}/sbtc/address/balances/${stxAddress}/${cardinal}/${ordinal}`;
-        const response = yield fetch(path);
-        if (response.status !== 200) {
-            console.log('Bitcoin address not known - is the network correct?');
-        }
-        const res = yield response.json();
-        return res;
-    });
-}
-function getBalanceAtHeight(api, stxAddress, height) {
+function getBalanceAtHeight(stacksApi, stxAddress, height) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!stxAddress)
             return {
@@ -67,22 +47,15 @@ function getBalanceAtHeight(api, stxAddress, height) {
                     locked: 0,
                 }
             };
-        const path = `${api}/dao/balance/${stxAddress}/${height}`;
+        const url = `${stacksApi}/extended/v1/address/${stxAddress}/balances?until_block=${height}`;
+        let val;
         try {
-            const response = yield fetch(path);
-            const res = yield response.json();
-            return res;
+            const response = yield fetch(url);
+            val = yield response.json();
         }
         catch (err) {
-            return undefined;
+            console.log('getBalanceAtHeight: ', err);
         }
-    });
-}
-function getStackerInfo(api, address, cycle) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const path = `${api}/pox/stacker-info/${address}/${cycle}`;
-        const response = yield fetch(path);
-        const res = yield response.json();
-        return res;
+        return val;
     });
 }
