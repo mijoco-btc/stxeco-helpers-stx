@@ -2,6 +2,20 @@ import { StacksMainnet, StacksMocknet, StacksTestnet } from "@stacks/network";
 import { TokenBalances } from "../sbtc";
 import { cvToJSON, deserializeCV } from "@stacks/transactions";
  
+export async function getTransaction(stacksApi:string, tx:string):Promise<any> {
+  const url = `${stacksApi}/extended/v1/tx/${tx}`;
+  let val;
+  try {
+      const response = await fetch(url)
+      val = await response.json();
+  }
+  catch (err) {
+      console.log('getTransaction: ', err);
+  }
+  return val;
+}
+
+
 export async function fetchDataVar(stacksApi:string, contractAddress:string, contractName:string, dataVarName:string) {
   try {
     //checkAddressForNetwork(getConfig().network, contractAddress)

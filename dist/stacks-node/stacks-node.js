@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getTransaction = getTransaction;
 exports.fetchDataVar = fetchDataVar;
 exports.getStacksNetwork = getStacksNetwork;
 exports.lookupContract = lookupContract;
@@ -19,6 +20,20 @@ exports.getPoxInfo = getPoxInfo;
 exports.callContractReadOnly = callContractReadOnly;
 const network_1 = require("@stacks/network");
 const transactions_1 = require("@stacks/transactions");
+function getTransaction(stacksApi, tx) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = `${stacksApi}/extended/v1/tx/${tx}`;
+        let val;
+        try {
+            const response = yield fetch(url);
+            val = yield response.json();
+        }
+        catch (err) {
+            console.log('getTransaction: ', err);
+        }
+        return val;
+    });
+}
 function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
