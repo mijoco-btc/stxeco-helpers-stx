@@ -26,3 +26,4 @@ __exportStar(require("./sbtc"), exports);
 __exportStar(require("./revealer_types"), exports);
 __exportStar(require("./sbtc-contract"), exports);
 __exportStar(require("./mining_types"), exports);
+__exportStar(require("./stxeco_nft_types"), exports);

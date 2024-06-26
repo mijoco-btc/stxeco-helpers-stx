@@ -10,3 +10,4 @@ export * from './sbtc';
 export * from './revealer_types';
 export * from './sbtc-contract';
 export * from './mining_types';
+export * from './stxeco_nft_types';
