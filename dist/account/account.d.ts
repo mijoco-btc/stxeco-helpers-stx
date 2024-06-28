@@ -1,5 +1,5 @@
 import { UserSession } from '@stacks/connect';
-import { AddressObject } from '../sbtc';
+import { AddressObject, ExchangeRate } from '../sbtc';
 import * as btc from '@scure/btc-signer';
 export declare const userSession: UserSession;
 export declare function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
@@ -27,3 +27,9 @@ export declare function getNet(network: string): {
     wif: number;
 };
 export declare const REGTEST_NETWORK: typeof btc.NETWORK;
+export declare function makeFlash(el1: HTMLElement | null): void;
+export declare function isLegal(routeId: string): boolean;
+export declare function verifyAmount(amount: number, balance: number): void;
+export declare function verifySBTCAmount(amount: number, balance: number, fee: number): void;
+export declare function initAddresses(network: string, sessionStore: any): void;
+export declare function initApplication(stacksApi: string, mempoolApi: string, network: string, sessionStore: any, exchangeRates: Array<ExchangeRate>, ftContract: string): Promise<void>;

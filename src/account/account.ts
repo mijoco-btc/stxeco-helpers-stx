@@ -1,10 +1,11 @@
 import { AppConfig, UserSession, showConnect, getStacksProvider, type StacksProvider } from '@stacks/connect';
 import { c32address, c32addressDecode } from 'c32check';
-import { AddressObject } from '../sbtc';
+import { AddressObject, ExchangeRate, SbtcUserSettingI } from '../sbtc';
 import { getWalletBalances } from '../custom-node';
-import { getTokenBalances } from '../stacks-node';
+import { fetchStacksInfo, getPoxInfo, getStacksNetwork, getTokenBalances } from '../stacks-node';
 import * as btc from '@scure/btc-signer';
-import { hex } from '@scure/base';
+import { PoxInfo, StacksInfo } from '../pox';
+import { SessionStore } from '../stxeco_types';
 
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -174,3 +175,230 @@ export function getNet(network:string) {
 }
 export const REGTEST_NETWORK: typeof btc.NETWORK = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0xc4 };
 
+
+
+
+async function addresses(network:string, callback:any):Promise<AddressObject|undefined> {
+	if (!isLoggedIn()) return {} as AddressObject;
+	const userData = userSession.loadUserData();
+	//let something = hashP2WPKH(payload.public_keys[0])
+	const stxAddress = getStacksAddress(network);
+	let ordinal = 'unknown'
+	let cardinal = 'unknown'
+	let btcPubkeySegwit0 = 'unknown'
+	let btcPubkeySegwit1 = 'unknown'
+
+	try {
+		if (!userData.profile.btcAddress) {
+			// asigna
+			callback({
+				network,
+				stxAddress,
+				cardinal: 'unknown',
+				ordinal: 'unknown',
+				btcPubkeySegwit0: 'unknown',
+				btcPubkeySegwit1: 'unknown',
+				sBTCBalance: 0,
+				stxBalance: 0
+			});
+		} else if (typeof userData.profile.btcAddress === 'string') {
+			// xverse
+			callback({
+				network,
+				stxAddress,
+				cardinal: userData.profile.btcAddress,
+				ordinal: 'unknown',
+				btcPubkeySegwit0: 'unknown',
+				btcPubkeySegwit1: 'unknown',
+				sBTCBalance: 0,
+				stxBalance: 0
+			});
+		} else {
+			try {
+				ordinal = userData.profile.btcAddress.p2tr.testnet
+				cardinal = userData.profile.btcAddress.p2wpkh.testnet
+				if (network === 'mainnet') {
+					ordinal = userData.profile.btcAddress.p2tr.mainnet
+					cardinal = userData.profile.btcAddress.p2wpkh.mainnet
+				} else if (network === 'devnet') {
+					ordinal = userData.profile.btcAddress.p2tr.regtest
+					cardinal = userData.profile.btcAddress.p2wpkh.regtest
+				} else if (network === 'signet') {
+					ordinal = userData.profile.btcAddress.p2tr.signet
+					cardinal = userData.profile.btcAddress.p2wpkh.signet
+				}
+				btcPubkeySegwit0 = userData.profile.btcPublicKey.p2wpkh
+				btcPubkeySegwit1 = userData.profile.btcPublicKey.p2tr
+			} catch(err:any) { 
+				//
+			}
+	
+			if (userData.profile.btcAddress) {
+				callback({
+					network,
+					stxAddress,
+					cardinal,
+					ordinal,
+					btcPubkeySegwit0,
+					btcPubkeySegwit1,
+					sBTCBalance: 0,
+					stxBalance: 0
+				});
+			} else {
+				callback({
+					network,
+					stxAddress,
+					cardinal: 'unknown',
+					ordinal: 'unknown',
+					btcPubkeySegwit0: 'unknown',
+					btcPubkeySegwit1: 'unknown',
+					sBTCBalance: 0,
+					stxBalance: 0
+				});
+			}
+		}
+	} catch(err:any) {
+		console.log('addresses: ', err)
+	}
+}
+
+export function makeFlash(el1:HTMLElement|null) {
+	let count = 0;
+	if (!el1) return;
+	el1.classList.add("flasherize-button");
+    const ticker = setInterval(function () {
+		count++;
+		if ((count % 2) === 0) {
+			el1.classList.add("flasherize-button");
+		}
+		else {
+			el1.classList.remove("flasherize-button");
+		}
+		if (count === 2) {
+			el1.classList.remove("flasherize-button");
+			clearInterval(ticker)
+		}
+	  }, 2000)
+}
+
+export function isLegal(routeId:string):boolean {
+	try {
+		if (userSession.isUserSignedIn()) return true;
+		if (routeId.startsWith('http')) {
+			if (routeId.indexOf('/deposit') > -1 || routeId.indexOf('/withdraw') > -1 || routeId.indexOf('/admin') > -1 || routeId.indexOf('/transactions') > -1) {
+				return false;
+			}
+		} else if (['/deposit', '/withdraw', '/admin', '/transactions'].includes(routeId)) {
+			return false;
+		}
+		return true;
+	} catch (err) {
+		return false
+	}
+}
+
+export function verifyAmount(amount:number, balance:number) {
+	if (!amount || amount === 0) {
+		throw new Error('No amount entered');
+	}
+	if (amount >= balance) {
+		throw new Error('Amount is greater than your balance');
+	}
+  	//if (amount < minimumDeposit) {
+	//	throw new Error('Amount must be at least 0.0001 or 10,000 satoshis');
+	//  }
+}
+export function verifySBTCAmount(amount:number, balance:number, fee:number) {
+	if (!amount || amount === 0) {
+		throw new Error('No amount entered');
+	}
+	if (amount > (balance - fee)) {
+		throw new Error('No more then balance (less fee of ' + fee + ')');
+	}
+}
+
+export function initAddresses(network:string, sessionStore:any) {
+	sessionStore.update((conf:SessionStore) => {
+		if (!conf.keySets || !conf.keySets[network]) {
+			conf.keySets['testnet'] = {} as AddressObject;
+		}
+		conf.stacksInfo = {} as StacksInfo
+		conf.poxInfo = {} as PoxInfo
+		conf.loggedIn = userSession.isUserSignedIn();
+		conf.exchangeRates = [] as Array<ExchangeRate>;
+		conf.userSettings = {} as SbtcUserSettingI
+		return conf;
+	});
+}
+
+export async function initApplication(stacksApi:string, mempoolApi:string, network:string, sessionStore:any, exchangeRates:Array<ExchangeRate>, ftContract:string) {
+	try {
+		const stacksInfo = await fetchStacksInfo(stacksApi) || {} as StacksInfo;
+		const poxInfo = await getPoxInfo(stacksApi)
+		const settings = sessionStore.userSettings || defaultSettings()
+		const rateNow = exchangeRates?.find((o:any) => o.currency === 'USD') || {currency: 'USD'} as ExchangeRate;
+		
+		settings.currency = {
+			myFiatCurrency: rateNow || defaultExchangeRate(),
+			cryptoFirst: true,
+			denomination: 'USD'
+		}
+		sessionStore.update((conf:SessionStore) => {
+			conf.stacksInfo = stacksInfo
+			conf.poxInfo = poxInfo
+			conf.loggedIn = userSession.isUserSignedIn();
+			conf.exchangeRates = exchangeRates || [] as Array<ExchangeRate>;
+			conf.userSettings = settings
+			return conf;
+		});
+
+		if (isLoggedIn() ) {
+			await addresses(network, async function(obj:AddressObject) {
+				console.log('in callback')
+				
+				obj.tokenBalances = await getTokenBalances(stacksApi, obj.stxAddress)
+				obj.sBTCBalance = Number(obj.tokenBalances?.fungible_tokens[ftContract + '::sbtc']?.balance || 0)
+				obj.walletBalances = await getWalletBalances(stacksApi, mempoolApi, obj.stxAddress, obj.cardinal, obj.ordinal)
+
+				sessionStore.update((conf:SessionStore) => {
+					conf.loggedIn = userSession.isUserSignedIn();
+					conf.keySets[network] = obj
+					conf.exchangeRates = exchangeRates || [] as Array<ExchangeRate>;
+					conf.userSettings = settings
+					return conf;
+				});
+			})
+		}
+	
+	} catch (err:any) {
+		initAddresses(network, sessionStore)
+	}
+}
+
+function defaultSettings():SbtcUserSettingI {
+	return {
+		debugMode: false,
+		useOpDrop: false,
+		peggingIn: false,
+		executiveTeamMember: false,
+		currency: {
+		  cryptoFirst: true,
+		  myFiatCurrency: defaultExchangeRate(),
+		  denomination: 'USD',
+		}
+	}
+}
+
+function defaultExchangeRate():ExchangeRate {
+	return {
+		_id: '',
+		currency: 'USD',
+		fifteen: 0,
+		last: 0,
+		buy: 0,
+		sell: 0,
+		symbol: 'USD',
+		name: 'BTCUSD'			  
+	}
+  }
+  

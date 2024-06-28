@@ -49,6 +49,12 @@ exports.decodeStacksAddress = decodeStacksAddress;
 exports.encodeStacksAddress = encodeStacksAddress;
 exports.verifyStacksPricipal = verifyStacksPricipal;
 exports.getNet = getNet;
+exports.makeFlash = makeFlash;
+exports.isLegal = isLegal;
+exports.verifyAmount = verifyAmount;
+exports.verifySBTCAmount = verifySBTCAmount;
+exports.initAddresses = initAddresses;
+exports.initApplication = initApplication;
 const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
@@ -236,3 +242,232 @@ function getNet(network) {
     return net;
 }
 exports.REGTEST_NETWORK = { bech32: 'bcrt', pubKeyHash: 0x6f, scriptHash: 0xc4, wif: 0xc4 };
+function addresses(network, callback) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!isLoggedIn())
+            return {};
+        const userData = exports.userSession.loadUserData();
+        //let something = hashP2WPKH(payload.public_keys[0])
+        const stxAddress = getStacksAddress(network);
+        let ordinal = 'unknown';
+        let cardinal = 'unknown';
+        let btcPubkeySegwit0 = 'unknown';
+        let btcPubkeySegwit1 = 'unknown';
+        try {
+            if (!userData.profile.btcAddress) {
+                // asigna
+                callback({
+                    network,
+                    stxAddress,
+                    cardinal: 'unknown',
+                    ordinal: 'unknown',
+                    btcPubkeySegwit0: 'unknown',
+                    btcPubkeySegwit1: 'unknown',
+                    sBTCBalance: 0,
+                    stxBalance: 0
+                });
+            }
+            else if (typeof userData.profile.btcAddress === 'string') {
+                // xverse
+                callback({
+                    network,
+                    stxAddress,
+                    cardinal: userData.profile.btcAddress,
+                    ordinal: 'unknown',
+                    btcPubkeySegwit0: 'unknown',
+                    btcPubkeySegwit1: 'unknown',
+                    sBTCBalance: 0,
+                    stxBalance: 0
+                });
+            }
+            else {
+                try {
+                    ordinal = userData.profile.btcAddress.p2tr.testnet;
+                    cardinal = userData.profile.btcAddress.p2wpkh.testnet;
+                    if (network === 'mainnet') {
+                        ordinal = userData.profile.btcAddress.p2tr.mainnet;
+                        cardinal = userData.profile.btcAddress.p2wpkh.mainnet;
+                    }
+                    else if (network === 'devnet') {
+                        ordinal = userData.profile.btcAddress.p2tr.regtest;
+                        cardinal = userData.profile.btcAddress.p2wpkh.regtest;
+                    }
+                    else if (network === 'signet') {
+                        ordinal = userData.profile.btcAddress.p2tr.signet;
+                        cardinal = userData.profile.btcAddress.p2wpkh.signet;
+                    }
+                    btcPubkeySegwit0 = userData.profile.btcPublicKey.p2wpkh;
+                    btcPubkeySegwit1 = userData.profile.btcPublicKey.p2tr;
+                }
+                catch (err) {
+                    //
+                }
+                if (userData.profile.btcAddress) {
+                    callback({
+                        network,
+                        stxAddress,
+                        cardinal,
+                        ordinal,
+                        btcPubkeySegwit0,
+                        btcPubkeySegwit1,
+                        sBTCBalance: 0,
+                        stxBalance: 0
+                    });
+                }
+                else {
+                    callback({
+                        network,
+                        stxAddress,
+                        cardinal: 'unknown',
+                        ordinal: 'unknown',
+                        btcPubkeySegwit0: 'unknown',
+                        btcPubkeySegwit1: 'unknown',
+                        sBTCBalance: 0,
+                        stxBalance: 0
+                    });
+                }
+            }
+        }
+        catch (err) {
+            console.log('addresses: ', err);
+        }
+    });
+}
+function makeFlash(el1) {
+    let count = 0;
+    if (!el1)
+        return;
+    el1.classList.add("flasherize-button");
+    const ticker = setInterval(function () {
+        count++;
+        if ((count % 2) === 0) {
+            el1.classList.add("flasherize-button");
+        }
+        else {
+            el1.classList.remove("flasherize-button");
+        }
+        if (count === 2) {
+            el1.classList.remove("flasherize-button");
+            clearInterval(ticker);
+        }
+    }, 2000);
+}
+function isLegal(routeId) {
+    try {
+        if (exports.userSession.isUserSignedIn())
+            return true;
+        if (routeId.startsWith('http')) {
+            if (routeId.indexOf('/deposit') > -1 || routeId.indexOf('/withdraw') > -1 || routeId.indexOf('/admin') > -1 || routeId.indexOf('/transactions') > -1) {
+                return false;
+            }
+        }
+        else if (['/deposit', '/withdraw', '/admin', '/transactions'].includes(routeId)) {
+            return false;
+        }
+        return true;
+    }
+    catch (err) {
+        return false;
+    }
+}
+function verifyAmount(amount, balance) {
+    if (!amount || amount === 0) {
+        throw new Error('No amount entered');
+    }
+    if (amount >= balance) {
+        throw new Error('Amount is greater than your balance');
+    }
+    //if (amount < minimumDeposit) {
+    //	throw new Error('Amount must be at least 0.0001 or 10,000 satoshis');
+    //  }
+}
+function verifySBTCAmount(amount, balance, fee) {
+    if (!amount || amount === 0) {
+        throw new Error('No amount entered');
+    }
+    if (amount > (balance - fee)) {
+        throw new Error('No more then balance (less fee of ' + fee + ')');
+    }
+}
+function initAddresses(network, sessionStore) {
+    sessionStore.update((conf) => {
+        if (!conf.keySets || !conf.keySets[network]) {
+            conf.keySets['testnet'] = {};
+        }
+        conf.stacksInfo = {};
+        conf.poxInfo = {};
+        conf.loggedIn = exports.userSession.isUserSignedIn();
+        conf.exchangeRates = [];
+        conf.userSettings = {};
+        return conf;
+    });
+}
+function initApplication(stacksApi, mempoolApi, network, sessionStore, exchangeRates, ftContract) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const stacksInfo = (yield (0, stacks_node_1.fetchStacksInfo)(stacksApi)) || {};
+            const poxInfo = yield (0, stacks_node_1.getPoxInfo)(stacksApi);
+            const settings = sessionStore.userSettings || defaultSettings();
+            const rateNow = (exchangeRates === null || exchangeRates === void 0 ? void 0 : exchangeRates.find((o) => o.currency === 'USD')) || { currency: 'USD' };
+            settings.currency = {
+                myFiatCurrency: rateNow || defaultExchangeRate(),
+                cryptoFirst: true,
+                denomination: 'USD'
+            };
+            sessionStore.update((conf) => {
+                conf.stacksInfo = stacksInfo;
+                conf.poxInfo = poxInfo;
+                conf.loggedIn = exports.userSession.isUserSignedIn();
+                conf.exchangeRates = exchangeRates || [];
+                conf.userSettings = settings;
+                return conf;
+            });
+            if (isLoggedIn()) {
+                yield addresses(network, function (obj) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        var _a, _b;
+                        console.log('in callback');
+                        obj.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(stacksApi, obj.stxAddress);
+                        obj.sBTCBalance = Number(((_b = (_a = obj.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[ftContract + '::sbtc']) === null || _b === void 0 ? void 0 : _b.balance) || 0);
+                        obj.walletBalances = yield (0, custom_node_1.getWalletBalances)(stacksApi, mempoolApi, obj.stxAddress, obj.cardinal, obj.ordinal);
+                        sessionStore.update((conf) => {
+                            conf.loggedIn = exports.userSession.isUserSignedIn();
+                            conf.keySets[network] = obj;
+                            conf.exchangeRates = exchangeRates || [];
+                            conf.userSettings = settings;
+                            return conf;
+                        });
+                    });
+                });
+            }
+        }
+        catch (err) {
+            initAddresses(network, sessionStore);
+        }
+    });
+}
+function defaultSettings() {
+    return {
+        debugMode: false,
+        useOpDrop: false,
+        peggingIn: false,
+        executiveTeamMember: false,
+        currency: {
+            cryptoFirst: true,
+            myFiatCurrency: defaultExchangeRate(),
+            denomination: 'USD',
+        }
+    };
+}
+function defaultExchangeRate() {
+    return {
+        _id: '',
+        currency: 'USD',
+        fifteen: 0,
+        last: 0,
+        buy: 0,
+        sell: 0,
+        symbol: 'USD',
+        name: 'BTCUSD'
+    };
+}

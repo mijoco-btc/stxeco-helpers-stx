@@ -9,11 +9,11 @@ export async function getWalletBalances(stacksApi:string, mempoolApi:string, stx
       amount: Number(rawBal?.tokenBalances?.stx?.balance || '0')
     },
     cardinal: {
-      address: rawBal.cardinalInfo?.address || 'unknown', 
+      address: cardinal, 
       amount: extractBtcBalance(rawBal?.cardinalInfo)
     },
     ordinal: {
-      address: rawBal.ordinalInfo?.address || 'unknown', 
+      address: ordinal, 
       amount: extractBtcBalance(rawBal?.ordinalInfo)
     }
   }

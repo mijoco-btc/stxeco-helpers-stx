@@ -157,7 +157,7 @@ export async function fetchUserBalances(stacksApi:string, mempoolApi:string, stx
       const url = `${stacksApi}/extended/v1/address/${userBalances.stxAddress}/balances`;
       const response = await fetch(url);
       const result:any = await response.json();
-      //userBalances.stacksTokenInfo = result;
+      userBalances.tokenBalances = result;
     }
   } catch(err:any) {
     //console.error('fetchUserBalances: stacksTokenInfo: ' + err.message)

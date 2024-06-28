@@ -14,7 +14,7 @@ exports.getBalanceAtHeight = getBalanceAtHeight;
 const sbtc_contract_1 = require("../sbtc-contract");
 function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b;
         const rawBal = yield (0, sbtc_contract_1.fetchUserBalances)(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
         return {
             stacks: {
@@ -22,11 +22,11 @@ function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
                 amount: Number(((_b = (_a = rawBal === null || rawBal === void 0 ? void 0 : rawBal.tokenBalances) === null || _a === void 0 ? void 0 : _a.stx) === null || _b === void 0 ? void 0 : _b.balance) || '0')
             },
             cardinal: {
-                address: ((_c = rawBal.cardinalInfo) === null || _c === void 0 ? void 0 : _c.address) || 'unknown',
+                address: cardinal,
                 amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.cardinalInfo)
             },
             ordinal: {
-                address: ((_d = rawBal.ordinalInfo) === null || _d === void 0 ? void 0 : _d.address) || 'unknown',
+                address: ordinal,
                 amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.ordinalInfo)
             }
         };

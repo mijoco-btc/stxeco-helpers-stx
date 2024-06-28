@@ -203,7 +203,7 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
                 const url = `${stacksApi}/extended/v1/address/${userBalances.stxAddress}/balances`;
                 const response = yield fetch(url);
                 const result = yield response.json();
-                //userBalances.stacksTokenInfo = result;
+                userBalances.tokenBalances = result;
             }
         }
         catch (err) {

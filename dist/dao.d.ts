@@ -1,4 +1,11 @@
 import { PoxAddress } from "./pox";
+export type CurrentProposal = {
+    _id?: string;
+    configId?: number;
+    contractId?: string;
+    linkName?: string;
+    linkAddress?: string;
+};
 export type HoldingsType = {
     nfts: any;
 };
@@ -29,6 +36,13 @@ export type UserPropertyType = {
     };
     contractName: string;
     functionName: string;
+};
+export type TentativeProposal = {
+    tag: string;
+    submissionExtension: string;
+    proposalMeta: ProposalMeta;
+    expectedStart: number;
+    expectedEnd: number;
 };
 export type ProposalEvent = {
     status?: {
