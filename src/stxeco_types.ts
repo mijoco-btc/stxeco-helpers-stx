@@ -1,4 +1,4 @@
-import { CurrentProposal, ExtensionType, InFlight, ProposalEvent, SoloPoolData } from "./dao";
+import { CurrentProposal, ExtensionType, InFlight, ProposalEvent, SoloPoolData, TentativeProposal } from "./dao";
 import { PoxInfo, StacksInfo } from "./pox";
 import { AddressObject, ExchangeRate, SbtcUserSettingI } from "./sbtc";
 import { StacksBalance } from "./stacker";
@@ -20,7 +20,8 @@ export type SessionStore = {
     extensions?: Array<ExtensionType>;
     soloPoolData: SoloPoolData,
     daoData?:InFlight;
-    currentProposal?: CurrentProposal
+    currentProposal?: CurrentProposal;
+    tentativeProposals:Array<TentativeProposal>;
   };
   
   export type HeaderItem = {
