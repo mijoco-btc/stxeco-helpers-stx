@@ -108,3 +108,13 @@ export async function callContractReadOnly(stacksApi:string, data:any) {
     return val
   }
 }
+
+export async function getStacksHeightFromBurnBlockHeight(stacksApi:string, burnHeight:number):Promise<number> {
+  let url = `${stacksApi}/extended/v1/block/by_burn_block_height/${burnHeight}`;
+  let response = await fetch(url)
+  if (response.status !== 200) {
+    return -1; // burn height in future.
+  }
+  let val = await response.json();
+  return val.height;
+}

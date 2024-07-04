@@ -1,4 +1,5 @@
 import { PoxAddress } from "./pox";
+import { HeaderItem } from "./stxeco_types";
 
 export type CurrentProposal = {
   _id?: string;
@@ -39,12 +40,71 @@ export type UserPropertyType = {
   contractName: string;
   functionName: string;
 }
+export type DaoEventEnableExtension = {
+  event:string;
+  event_index:number;
+  daoContract:string;
+  txId: string;
+  extension: string;
+  enabled: boolean;
+};
+
+export type DaoEventExecuteProposal = {
+  event:string;
+  event_index:number;
+  daoContract:string;
+  txId: string;
+  proposal: string;
+};
+
+export type VotingEventVoteOnProposal = {
+  event:string;
+  event_index:number;
+  daoContract:string;
+  votingContract:string;
+  txId: string;
+  proposal: string;
+  voter: string;
+  for: boolean;
+  amount: number;
+};
+
+export type VotingEventConcludeProposal = {
+  event:string;
+  event_index:number;
+  daoContract:string;
+  votingContract:string;
+  txId: string;
+  proposal: string;
+  passed: boolean;
+  proposalMeta: ProposalMeta;
+  contract: ProposalContract; 
+  proposalData: ProposalData;
+};
+
+export type VotingEventProposeProposal = {
+  event:string;
+  event_index:number;
+  daoContract:string;
+  votingContract:string;
+  submissionContract:string;
+  txId: string;
+  proposal: string;
+  proposer: string;
+  proposalMeta: ProposalMeta;
+  contract: ProposalContract; 
+  proposalData: ProposalData;
+};
+
 export type TentativeProposal = {
   tag:string;
-  submissionExtension:string;
   proposalMeta: ProposalMeta;
   expectedStart: number;
   expectedEnd: number;
+  info?: Array<HeaderItem>;
+  submissionData: SubmissionData;
+  proposer?:string;
+  votingContract?: string;
 };
 
 export type ProposalEvent = {
@@ -62,6 +122,7 @@ export type ProposalEvent = {
   signals?: SignalData;
   executedAt: number;
   stage: ProposalStage;
+  info?: Array<HeaderItem>;
 }
 export type ProposalData = {
   concluded:boolean; 
@@ -131,7 +192,7 @@ export type GovernanceData = {
 
 export type SubmissionData = {
   contractId:string;
-  transaction: any;
+  transaction?: any;
 }
 export type ProposalContract = {
   source:string;

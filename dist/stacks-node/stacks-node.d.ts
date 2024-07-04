@@ -9,3 +9,4 @@ export declare function fetchStacksInfo(stacksApi: string): Promise<any>;
 export declare function getTokenBalances(stacksApi: string, principal: string): Promise<TokenBalances>;
 export declare function getPoxInfo(stacksApi: string): Promise<any>;
 export declare function callContractReadOnly(stacksApi: string, data: any): Promise<any>;
+export declare function getStacksHeightFromBurnBlockHeight(stacksApi: string, burnHeight: number): Promise<number>;

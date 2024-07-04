@@ -18,6 +18,7 @@ exports.fetchStacksInfo = fetchStacksInfo;
 exports.getTokenBalances = getTokenBalances;
 exports.getPoxInfo = getPoxInfo;
 exports.callContractReadOnly = callContractReadOnly;
+exports.getStacksHeightFromBurnBlockHeight = getStacksHeightFromBurnBlockHeight;
 const network_1 = require("@stacks/network");
 const transactions_1 = require("@stacks/transactions");
 function getTransaction(stacksApi, tx) {
@@ -139,5 +140,16 @@ function callContractReadOnly(stacksApi, data) {
             console.error('Error: callContractReadOnly: ', val);
             return val;
         }
+    });
+}
+function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let url = `${stacksApi}/extended/v1/block/by_burn_block_height/${burnHeight}`;
+        let response = yield fetch(url);
+        if (response.status !== 200) {
+            return -1; // burn height in future.
+        }
+        let val = yield response.json();
+        return val.height;
     });
 }

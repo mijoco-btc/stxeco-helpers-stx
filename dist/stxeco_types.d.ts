@@ -15,7 +15,8 @@ export type SessionStore = {
     stacksInfo: StacksInfo;
 };
 export type DaoStore = {
-    proposals: Array<ProposalEvent>;
+    activeProposals: Array<ProposalEvent>;
+    inactiveProposals: Array<ProposalEvent>;
     extensions?: Array<ExtensionType>;
     soloPoolData: SoloPoolData;
     daoData?: InFlight;
