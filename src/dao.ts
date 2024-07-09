@@ -94,10 +94,26 @@ export type VotingEventProposeProposal = {
   proposalMeta: ProposalMeta;
   contract: ProposalContract; 
   proposalData: ProposalData;
+  stackerData?: StackerProposalData;
+  links?:Array<HeaderItem>;
+};
+
+export type StackerProposalData = {
+  stacksAddressYes:string;
+  stacksAddressNo:string;
+  bitcoinAddressYes:string;
+  bitcoinAddressNo:string;
+  votingStart:number;
+  votingEnd:number;
+  customMajority:number;
+  passed:boolean;
+  votesAgainst:number;
+  votesFor:number;
 };
 
 export type TentativeProposal = {
   tag:string;
+  visible: boolean;
   proposalMeta: ProposalMeta;
   expectedStart: number;
   expectedEnd: number;

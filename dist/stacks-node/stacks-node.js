@@ -111,7 +111,10 @@ function getPoxInfo(stacksApi) {
 }
 function callContractReadOnly(stacksApi, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        const url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
+        let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
+        if (data.tip) {
+            url += '?tip=' + data.tip;
+        }
         let val;
         try {
             console.log('callContractReadOnly: url: ', url);

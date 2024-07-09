@@ -173,13 +173,19 @@ export type PoolStackerEvent = {
     balance: number;
     stacker: string;
     burnchainUnlockHeight: number;
-    data: DelegationStx | DelegationAggregationIncrease | DelegationStackExtend | DelegationStackStx | DelegationStackIncrease | StackStx | StackIncrease | StackExtend | HandleUnlock;
+    data: DelegationStx | RevokeDelegateStx | DelegationAggregationIncrease | DelegationStackExtend | DelegationStackStx | DelegationStackIncrease | StackStx | StackIncrease | StackExtend | HandleUnlock;
 };
 export type HandleUnlock = {
     amountUstx: number;
     firstCycleLocked: number;
     firstUnlockedCycle: number;
     poxAddr?: PoxAddress;
+};
+export type RevokeDelegateStx = {
+    amountUstx: number;
+    delegator?: string | undefined;
+    endCycleId?: number | undefined;
+    startCycleId: number;
 };
 export type DelegationStx = {
     amountUstx: number;

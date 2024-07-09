@@ -79,7 +79,10 @@ export async function getPoxInfo(stacksApi:string) {
 }
 
 export async function callContractReadOnly(stacksApi:string, data:any) {
-  const url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`
+  let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`
+  if (data.tip) {
+    url += '?tip=' + data.tip
+  }
   let val;
   try {
 
