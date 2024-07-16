@@ -13,7 +13,10 @@ export declare function appDetails(): {
 };
 export declare function isLoggedIn(): boolean;
 export declare function getStacksAddress(network: string): any;
-export declare function loginStacks(callback: any): Promise<void>;
+export declare function loginStacks(appDetails: {
+    name: string;
+    icon: string;
+}, callback: any): Promise<void>;
 export declare function loginStacksFromHeader(document: any): any;
 export declare function logUserOut(): void;
 export declare function checkAddressForNetwork(net: string, address: string | undefined): void;

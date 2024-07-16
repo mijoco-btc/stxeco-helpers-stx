@@ -4,8 +4,8 @@ import { AddressObject, ExchangeRate, SbtcUserSettingI } from '../sbtc';
 import { getWalletBalances } from '../custom-node';
 import { fetchStacksInfo, getPoxInfo, getStacksNetwork, getTokenBalances } from '../stacks-node';
 import * as btc from '@scure/btc-signer';
-import { PoxInfo, StacksInfo } from '../pox';
 import { SessionStore } from '../stxeco_types';
+import { PoxInfo, StacksInfo } from '../pox_types';
 
 
 const appConfig = new AppConfig(['store_write', 'publish_data']);
@@ -78,18 +78,17 @@ export function getStacksAddress(network:string) {
 	return
 }
 
-export async function loginStacks(callback:any) {
+export async function loginStacks(appDetails:{ name:string, icon:string }, callback:any) {
 	try {
 		const provider = getProvider()
 		console.log('provider: ', provider)
 		if (!userSession.isUserSignedIn()) {
 			showConnect({
 				userSession,
-				appDetails: appDetails(),
+				appDetails,
 				onFinish: async (e:unknown) => {
 					console.log(e)
-					await callback(true);
-					window.location.reload()
+					callback(true);
 				},
 				onCancel: () => {
 					callback(false);
@@ -319,9 +318,9 @@ export function verifySBTCAmount(amount:number, balance:number, fee:number) {
 
 export function initAddresses(network:string, sessionStore:any) {
 	sessionStore.update((conf:SessionStore) => {
-		if (!conf.keySets || !conf.keySets[network]) {
-			conf.keySets['testnet'] = {} as AddressObject;
-		}
+		if (!conf.keySets || !conf.keySets['devnet']) conf.keySets['devnet'] = {} as AddressObject;
+		if (!conf.keySets || !conf.keySets['testnet']) conf.keySets['testnet'] = {} as AddressObject;
+		if (!conf.keySets || !conf.keySets['mainnet']) conf.keySets['mainnet'] = {} as AddressObject;
 		conf.stacksInfo = {} as StacksInfo
 		conf.poxInfo = {} as PoxInfo
 		conf.loggedIn = userSession.isUserSignedIn();

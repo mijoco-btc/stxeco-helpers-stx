@@ -16,9 +16,9 @@ exports.lookupContract = lookupContract;
 exports.isConstructed = isConstructed;
 exports.fetchStacksInfo = fetchStacksInfo;
 exports.getTokenBalances = getTokenBalances;
-exports.getPoxInfo = getPoxInfo;
 exports.callContractReadOnly = callContractReadOnly;
 exports.getStacksHeightFromBurnBlockHeight = getStacksHeightFromBurnBlockHeight;
+exports.getPoxInfo = getPoxInfo;
 const network_1 = require("@stacks/network");
 const transactions_1 = require("@stacks/transactions");
 function getTransaction(stacksApi, tx) {
@@ -101,14 +101,6 @@ function getTokenBalances(stacksApi, principal) {
         return res;
     });
 }
-function getPoxInfo(stacksApi) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const path = `${stacksApi}/v2/pox`;
-        const response = yield fetch(path);
-        const res = yield response.json();
-        return res;
-    });
-}
 function callContractReadOnly(stacksApi, data) {
     return __awaiter(this, void 0, void 0, function* () {
         let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
@@ -154,5 +146,13 @@ function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight) {
         }
         let val = yield response.json();
         return val.height;
+    });
+}
+function getPoxInfo(stacksApi) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const path = `${stacksApi}/v2/pox`;
+        const response = yield fetch(path);
+        const res = yield response.json();
+        return res;
     });
 }

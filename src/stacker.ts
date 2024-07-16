@@ -1,5 +1,5 @@
 import { ProposalData, VoteEvent } from "./dao";
-import { PoolStackerEvent, PoxEntry, StackerInfo } from "./pox";
+import { PoolStackerEvent, PoxEntry, StackerInfo } from "./pox_types";
 
 export type StacksBalance = {
     stx: {

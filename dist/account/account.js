@@ -128,7 +128,7 @@ function getStacksAddress(network) {
     }
     return;
 }
-function loginStacks(callback) {
+function loginStacks(appDetails, callback) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const provider = getProvider();
@@ -136,11 +136,10 @@ function loginStacks(callback) {
             if (!exports.userSession.isUserSignedIn()) {
                 (0, connect_1.showConnect)({
                     userSession: exports.userSession,
-                    appDetails: appDetails(),
+                    appDetails,
                     onFinish: (e) => __awaiter(this, void 0, void 0, function* () {
                         console.log(e);
-                        yield callback(true);
-                        window.location.reload();
+                        callback(true);
                     }),
                     onCancel: () => {
                         callback(false);
@@ -391,9 +390,12 @@ function verifySBTCAmount(amount, balance, fee) {
 }
 function initAddresses(network, sessionStore) {
     sessionStore.update((conf) => {
-        if (!conf.keySets || !conf.keySets[network]) {
+        if (!conf.keySets || !conf.keySets['devnet'])
+            conf.keySets['devnet'] = {};
+        if (!conf.keySets || !conf.keySets['testnet'])
             conf.keySets['testnet'] = {};
-        }
+        if (!conf.keySets || !conf.keySets['mainnet'])
+            conf.keySets['mainnet'] = {};
         conf.stacksInfo = {};
         conf.poxInfo = {};
         conf.loggedIn = exports.userSession.isUserSignedIn();

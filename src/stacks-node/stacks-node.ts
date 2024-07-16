@@ -1,6 +1,7 @@
 import { StacksMainnet, StacksMocknet, StacksTestnet } from "@stacks/network";
 import { TokenBalances } from "../sbtc";
 import { cvToJSON, deserializeCV } from "@stacks/transactions";
+import { PoxInfo } from "../pox_types";
  
 export async function getTransaction(stacksApi:string, tx:string):Promise<any> {
   const url = `${stacksApi}/extended/v1/tx/${tx}`;
@@ -71,13 +72,6 @@ export async function getTokenBalances(stacksApi:string, principal:string):Promi
   return res;
 }
 
-export async function getPoxInfo(stacksApi:string) {
-  const path = `${stacksApi}/v2/pox`;
-  const response = await fetch(path);
-  const res = await response.json();
-  return res;
-}
-
 export async function callContractReadOnly(stacksApi:string, data:any) {
   let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`
   if (data.tip) {
@@ -121,3 +115,11 @@ export async function getStacksHeightFromBurnBlockHeight(stacksApi:string, burnH
   let val = await response.json();
   return val.height;
 }
+
+export async function getPoxInfo(stacksApi:string):Promise<PoxInfo> {
+	const path = `${stacksApi}/v2/pox`;
+	const response = await fetch(path);
+	const res = await response.json();
+	return res;
+}
+

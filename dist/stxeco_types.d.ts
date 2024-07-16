@@ -1,5 +1,5 @@
 import { CurrentProposal, ExtensionType, InFlight, ProposalEvent, SoloPoolData, TentativeProposal } from "./dao";
-import { PoxInfo, StacksInfo } from "./pox";
+import { PoxInfo, StacksInfo } from "./pox_types";
 import { AddressObject, ExchangeRate, SbtcUserSettingI } from "./sbtc";
 import { StacksBalance } from "./stacker";
 export type SessionStore = {

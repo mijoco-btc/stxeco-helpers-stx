@@ -1,5 +1,6 @@
-import { PoxAddress } from "./pox";
+import { ObjectId } from "mongodb";
 import { HeaderItem } from "./stxeco_types";
+import { PoxAddress } from "./pox_types";
 
 export type CurrentProposal = {
   _id?: string;
@@ -58,6 +59,7 @@ export type DaoEventExecuteProposal = {
 };
 
 export type VotingEventVoteOnProposal = {
+  _id:ObjectId;
   event:string;
   event_index:number;
   daoContract:string;
@@ -70,6 +72,7 @@ export type VotingEventVoteOnProposal = {
 };
 
 export type VotingEventConcludeProposal = {
+  _id:ObjectId;
   event:string;
   event_index:number;
   daoContract:string;
@@ -83,6 +86,7 @@ export type VotingEventConcludeProposal = {
 };
 
 export type VotingEventProposeProposal = {
+  _id:ObjectId;
   event:string;
   event_index:number;
   daoContract:string;
@@ -103,12 +107,21 @@ export type StackerProposalData = {
   stacksAddressNo:string;
   bitcoinAddressYes:string;
   bitcoinAddressNo:string;
-  votingStart:number;
-  votingEnd:number;
-  customMajority:number;
-  passed:boolean;
-  votesAgainst:number;
-  votesFor:number;
+  sip:boolean;
+  reportedResults?: {
+    soloFor:number; 
+    soloAgainst:number; 
+    poolFor: number; 
+    poolAgainst:number; 
+    soloAddresses: number; 
+    poolAddresses: number;
+  },
+  heights: {
+    burnStart: number;
+    burnEnd: number;
+    stacksStart: number;
+    stacksEnd: number;
+  }
 };
 
 export type TentativeProposal = {
@@ -117,6 +130,7 @@ export type TentativeProposal = {
   proposalMeta: ProposalMeta;
   expectedStart: number;
   expectedEnd: number;
+  stacksDeployHeight: number;
   info?: Array<HeaderItem>;
   submissionData: SubmissionData;
   proposer?:string;
@@ -156,6 +170,7 @@ export type ProposalData = {
 export type VoteEvent = {
   stackerData?: any;
   event: string;
+  source: string;
   voter: string;
   voterProxy: string;
   for: boolean;
@@ -171,6 +186,7 @@ export type VoteEvent = {
   delegateTxId?: string;
   poxStacker?: string;
   poxAddr?: PoxAddress;
+  reconciled: boolean;
 }
 
 export enum ProposalStage {

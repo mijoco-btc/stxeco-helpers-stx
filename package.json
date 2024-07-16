@@ -1,6 +1,6 @@
 {
   "name": "@mijoco/stx_helpers",
-  "version": "0.3.5",
+  "version": "0.4.2",
   "main": "index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -22,6 +22,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@mijoco/btc_helpers": "^0.0.3",
     "@scure/btc-signer": "^1.3.2",
     "@stacks/common": "^6.13.0",
     "@stacks/connect": "^7.7.1",
@@ -30,6 +31,7 @@
     "@stacks/transactions": "^6.15.0",
     "c32check": "^2.0.0",
     "micro-packed": "^0.6.3",
+    "mongodb": "^6.8.0",
     "tslib": "^2.6.3"
   }
 }
