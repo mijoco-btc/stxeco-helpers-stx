@@ -97,7 +97,11 @@ function getPoxCycleInfo(stacksApi, poxContract, cycle) {
         const totalPoxRejection = yield getTotalPoxRejection(stacksApi, poxContract, cycle);
         const rewardSetSize = yield getRewardSetSize(stacksApi, poxContract, cycle);
         return {
-            rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : undefined,
+            firstBlockHeight: 0,
+            lastBlockHeight: 0,
+            firstBlockTime: 0,
+            lastBlockTime: 0,
+            rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
             numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
             numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
             totalPoxRejection: (totalPoxRejection) ? Number(totalPoxRejection) : 0,

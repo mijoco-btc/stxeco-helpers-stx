@@ -49,18 +49,22 @@ export async function getRewardCycleToBurnHeight(stacksApi:string, poxContract:s
 	return { cycle }
 }
 
-export async function getPoxCycleInfo(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+export async function getPoxCycleInfo(stacksApi:string, poxContract:string, cycle:number):Promise<PoxCycleInfo> {
 	const totalStacked = await getTotalUstxStacked(stacksApi, poxContract, cycle)
 	const numRewardSetPoxAddresses = await getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle)
 	const numbEntriesRewardCyclePoxList = await getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle)
 	const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContract, cycle)
 	const rewardSetSize = await getRewardSetSize(stacksApi, poxContract, cycle)
 	return {
-	  rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : undefined,
-	  numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
-	  numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
-	  totalPoxRejection: (totalPoxRejection) ? Number(totalPoxRejection) : 0,
-	  totalUstxStacked: totalStacked
+		firstBlockHeight:0,
+		lastBlockHeight:0,
+		firstBlockTime:0,
+		lastBlockTime:0,
+		rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
+		numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
+		numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
+		totalPoxRejection: (totalPoxRejection) ? Number(totalPoxRejection) : 0,
+		totalUstxStacked: totalStacked
 	};
   }
   
@@ -110,7 +114,7 @@ export async function getPoxCycleInfoRelative(stacksApi:string, mempoolApi:strin
 	  numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
 	  totalPoxRejection: -1,
 	  totalUstxStacked: totalStacked
-	};
+	}
   }
   
   

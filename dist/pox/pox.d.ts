@@ -3,7 +3,7 @@ import { VerifySignerKey } from '../signer';
 export declare function getPoxContractFromCycle(cycle: number): Promise<"pox" | "pox-2" | "pox-3" | "pox-4">;
 export declare function getBurnHeightToRewardCycle(stacksApi: string, poxContract: string, height: number): Promise<any>;
 export declare function getRewardCycleToBurnHeight(stacksApi: string, poxContract: string, cycle: number): Promise<any>;
-export declare function getPoxCycleInfo(stacksApi: string, poxContract: string, cycle: number): Promise<any>;
+export declare function getPoxCycleInfo(stacksApi: string, poxContract: string, cycle: number): Promise<PoxCycleInfo>;
 export declare function getPoxCycleInfoRelative(stacksApi: string, mempoolApi: string, poxContract: string, cycle: number, currentBurnHeight: number): Promise<PoxCycleInfo>;
 export declare function getTotalUstxStacked(stacksApi: string, poxContract: string, cycle: number): Promise<any>;
 export declare function getRewardSetPoxAddress(stacksApi: string, poxContract: string, cycle: number, index: number): Promise<any>;
