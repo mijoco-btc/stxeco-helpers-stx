@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPoxContractFromCycle = getPoxContractFromCycle;
+exports.getPoxContractFromHeight = getPoxContractFromHeight;
 exports.getBurnHeightToRewardCycle = getBurnHeightToRewardCycle;
 exports.getRewardCycleToBurnHeight = getRewardCycleToBurnHeight;
 exports.getPoxCycleInfo = getPoxCycleInfo;
@@ -17,9 +18,8 @@ exports.getPoxCycleInfoRelative = getPoxCycleInfoRelative;
 exports.getTotalUstxStacked = getTotalUstxStacked;
 exports.getRewardSetPoxAddress = getRewardSetPoxAddress;
 exports.getNumbEntriesRewardCyclePoxList = getNumbEntriesRewardCyclePoxList;
-exports.getTotalPoxRejection = getTotalPoxRejection;
 exports.getRewardSetSize = getRewardSetSize;
-exports.getNumRewardSetPoxAddresses = getNumRewardSetPoxAddresses;
+exports.getTotalPoxRejection = getTotalPoxRejection;
 exports.getAllowanceContractCallers = getAllowanceContractCallers;
 exports.getPartialStackedByCycle = getPartialStackedByCycle;
 exports.getStackerInfoFromContract = getStackerInfoFromContract;
@@ -35,27 +35,39 @@ const stacks_node_1 = require("../stacks-node");
 const pox_types_1 = require("../pox_types");
 const index_1 = require("@mijoco/btc_helpers/dist/index");
 function getPoxContractFromCycle(cycle) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (cycle < 56) {
-            return 'pox';
-        }
-        else if (cycle < 60) {
-            return 'pox-2';
-        }
-        else if (cycle < 84) {
-            return 'pox-3';
-        }
-        else {
-            return 'pox-4';
-        }
-    });
+    if (cycle < 56) {
+        return 'pox';
+    }
+    else if (cycle < 60) {
+        return 'pox-2';
+    }
+    else if (cycle < 84) {
+        return 'pox-3';
+    }
+    else {
+        return 'pox-4';
+    }
 }
-function getBurnHeightToRewardCycle(stacksApi, poxContract, height) {
+function getPoxContractFromHeight(height) {
+    if (height < 783650) {
+        return 'pox';
+    }
+    else if (height < 792050) {
+        return 'pox-2';
+    }
+    else if (height < 842450) {
+        return 'pox-3';
+    }
+    else {
+        return 'pox-4';
+    }
+}
+function getBurnHeightToRewardCycle(stacksApi, poxContractId, height) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(height)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: poxContractId.split('.')[1],
             functionName: 'burn-height-to-reward-cycle',
             functionArgs,
         };
@@ -70,12 +82,12 @@ function getBurnHeightToRewardCycle(stacksApi, poxContract, height) {
         return { cycle, height };
     });
 }
-function getRewardCycleToBurnHeight(stacksApi, poxContract, cycle) {
+function getRewardCycleToBurnHeight(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: poxContractId.split('.')[1],
             functionName: 'reward-cycle-to-burn-height',
             functionArgs,
         };
@@ -89,34 +101,31 @@ function getRewardCycleToBurnHeight(stacksApi, poxContract, cycle) {
         return { cycle };
     });
 }
-function getPoxCycleInfo(stacksApi, poxContract, cycle) {
+function getPoxCycleInfo(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
-        const totalStacked = yield getTotalUstxStacked(stacksApi, poxContract, cycle);
-        const numRewardSetPoxAddresses = yield getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle);
-        const numbEntriesRewardCyclePoxList = yield getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle);
-        const totalPoxRejection = yield getTotalPoxRejection(stacksApi, poxContract, cycle);
-        const rewardSetSize = yield getRewardSetSize(stacksApi, poxContract, cycle);
+        const totalStacked = yield getTotalUstxStacked(stacksApi, poxContractId, cycle);
+        const numbEntriesRewardCyclePoxList = yield getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle);
+        const totalPoxRejection = yield getTotalPoxRejection(stacksApi, poxContractId, cycle);
+        const rewardSetSize = yield getRewardSetSize(stacksApi, poxContractId, cycle);
         return {
             firstBlockHeight: 0,
             lastBlockHeight: 0,
             firstBlockTime: 0,
             lastBlockTime: 0,
             rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
-            numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
             numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
             totalPoxRejection: (totalPoxRejection) ? Number(totalPoxRejection) : 0,
             totalUstxStacked: totalStacked
         };
     });
 }
-function getPoxCycleInfoRelative(stacksApi, mempoolApi, poxContract, cycle, currentBurnHeight) {
+function getPoxCycleInfoRelative(stacksApi, mempoolApi, poxContractId, cycle, currentBurnHeight) {
     return __awaiter(this, void 0, void 0, function* () {
-        const result1 = yield getRewardCycleToBurnHeight(stacksApi, poxContract, cycle);
-        const totalStacked = yield getTotalUstxStacked(stacksApi, poxContract, cycle);
-        const numRewardSetPoxAddresses = yield getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle);
-        const numbEntriesRewardCyclePoxList = yield getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle);
-        //const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContract, cycle)
-        const rewardSetSize = yield getRewardSetSize(stacksApi, poxContract, cycle);
+        const result1 = yield getRewardCycleToBurnHeight(stacksApi, poxContractId, cycle);
+        const totalStacked = yield getTotalUstxStacked(stacksApi, poxContractId, cycle);
+        const numbEntriesRewardCyclePoxList = yield getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle);
+        //const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContractId, cycle)
+        const rewardSetSize = yield getRewardSetSize(stacksApi, poxContractId, cycle);
         const firstBlockHeight = Number(result1.cycle.value);
         const lastBlockHeight = Number(result1.cycle.value) + pox_types_1.REWARD_CYCLE_LENGTH + pox_types_1.PREPARE_CYCLE_LENGTH - 1;
         let firstBlockTime = 0;
@@ -149,19 +158,18 @@ function getPoxCycleInfoRelative(stacksApi, mempoolApi, poxContract, cycle, curr
             firstBlockTime,
             lastBlockTime,
             rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
-            numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
             numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
             totalPoxRejection: -1,
             totalUstxStacked: totalStacked
         };
     });
 }
-function getTotalUstxStacked(stacksApi, poxContract, cycle) {
+function getTotalUstxStacked(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: getPoxContractFromCycle(cycle),
             functionName: 'get-total-ustx-stacked',
             functionArgs,
         };
@@ -169,12 +177,12 @@ function getTotalUstxStacked(stacksApi, poxContract, cycle) {
         return (val.value) ? val.value : 0;
     });
 }
-function getRewardSetPoxAddress(stacksApi, poxContract, cycle, index) {
+function getRewardSetPoxAddress(stacksApi, poxContractId, cycle, index) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`, `0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(index)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: getPoxContractFromCycle(cycle),
             functionName: 'get-reward-set-pox-address',
             functionArgs,
         };
@@ -182,12 +190,12 @@ function getRewardSetPoxAddress(stacksApi, poxContract, cycle, index) {
         return (val.value) ? val.value.value : 0;
     });
 }
-function getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle) {
+function getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: getPoxContractFromCycle(cycle),
             functionName: 'get-num-reward-set-pox-addresses',
             functionArgs,
         };
@@ -195,25 +203,13 @@ function getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle) {
         return (val.value) ? val.value : 0;
     });
 }
-function getTotalPoxRejection(stacksApi, poxContract, cycle) {
+// includes reward slots currently under stacking limit.
+function getRewardSetSize(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
-            functionName: 'get-total-pox-rejection',
-            functionArgs,
-        };
-        const val = (yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data));
-        return (val.value) ? Number(val.value) : 0;
-    });
-}
-function getRewardSetSize(stacksApi, poxContract, cycle) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
-        const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
+            contractAddress: poxContractId.split('.')[0],
+            contractName: getPoxContractFromCycle(cycle),
             functionName: 'get-reward-set-size',
             functionArgs,
         };
@@ -221,25 +217,20 @@ function getRewardSetSize(stacksApi, poxContract, cycle) {
         return (val.value) ? val.value : 0;
     });
 }
-function getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle) {
+function getTotalPoxRejection(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
-            contractAddress: poxContract.split('.')[0],
-            contractName: poxContract.split('.')[1],
-            functionName: 'get-num-reward-set-pox-addresses',
+            contractAddress: poxContractId.split('.')[0],
+            contractName: getPoxContractFromCycle(cycle),
+            functionName: 'get-total-pox-rejection',
             functionArgs,
         };
-        try {
-            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
-            return result.value;
-        }
-        catch (e) {
-            return { stacked: 0 };
-        }
+        const val = (yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data));
+        return (val.value) ? Number(val.value) : 0;
     });
 }
-function getAllowanceContractCallers(stacksApi, poxContractId, address, contract) {
+function getAllowanceContractCallers(stacksApi, poxContractId, address, contract, tip) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address)))}`, `0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.contractPrincipalCV)(contract.split('.')[0], contract.split('.')[1])))}`];
         const data = {
@@ -248,14 +239,15 @@ function getAllowanceContractCallers(stacksApi, poxContractId, address, contract
             functionName: 'get-allowance-contract-callers',
             functionArgs,
         };
-        let funding;
+        if (tip) {
+            data.tip = tip;
+            data.contractName = getPoxContractFromHeight(tip);
+        }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             return result;
         }
-        catch (e) {
-            funding = '0';
-        }
+        catch (e) { }
         return { stacked: 0 };
     });
 }
@@ -274,7 +266,7 @@ function getPartialStackedByCycle(stacksApi, network, poxContractId, address, cy
             ];
             const data = {
                 contractAddress: poxContractId.split('.')[0],
-                contractName: poxContractId.split('.')[1],
+                contractName: getPoxContractFromCycle(cycle),
                 functionName: 'get-partial-stacked-by-cycle',
                 functionArgs,
             };
@@ -297,7 +289,7 @@ function getStackerInfoFromContract(stacksApi, network, poxContractId, address, 
         };
     });
 }
-function getStackerInfo(stacksApi, network, poxContractId, address) {
+function getStackerInfo(stacksApi, network, poxContractId, address, tip) {
     return __awaiter(this, void 0, void 0, function* () {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address)))}`];
         const data = {
@@ -306,7 +298,10 @@ function getStackerInfo(stacksApi, network, poxContractId, address) {
             functionName: 'get-stacker-info',
             functionArgs,
         };
-        let funding;
+        if (tip) {
+            data.tip = tip;
+            data.contractName = getPoxContractFromHeight(tip);
+        }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             return (result.value) ? {
@@ -330,13 +325,11 @@ function getStackerInfo(stacksApi, network, poxContractId, address) {
             ;; principal of the delegate, if stacker has delegated
              */
         }
-        catch (e) {
-            funding = '0';
-        }
+        catch (e) { }
         return;
     });
 }
-function getCheckDelegation(stacksApi, poxContractId, address) {
+function getCheckDelegation(stacksApi, poxContractId, address, tip) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address)))}`];
@@ -371,7 +364,7 @@ function getPoxRejection(stacksApi, poxContractId, address, cycle) {
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address)))}`, `0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
             contractAddress: poxContractId.split('.')[0],
-            contractName: poxContractId.split('.')[1],
+            contractName: getPoxContractFromCycle(cycle),
             functionName: 'get-pox-rejection',
             functionArgs,
         };
@@ -379,7 +372,7 @@ function getPoxRejection(stacksApi, poxContractId, address, cycle) {
         return (val.value) ? { poxRejectionPerStackerPerCycle: val.value.value } : { poxRejectionPerStackerPerCycle: 0 };
     });
 }
-function checkCallerAllowed(stacksApi, poxContractId, stxAddress) {
+function checkCallerAllowed(stacksApi, poxContractId, stxAddress, tip) {
     return __awaiter(this, void 0, void 0, function* () {
         const data = {
             contractAddress: poxContractId.split('.')[0],
@@ -388,18 +381,19 @@ function checkCallerAllowed(stacksApi, poxContractId, stxAddress) {
             functionName: 'check-caller-allowed',
             functionArgs: [],
         };
-        let allowed;
+        if (tip) {
+            data.tip = tip;
+            data.contractName = getPoxContractFromHeight(tip);
+        }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             return { allowed: result };
         }
-        catch (e) {
-            allowed = false;
-        }
+        catch (e) { }
         return { allowed: false };
     });
 }
-function verifySignerKeySig(stacksApi, network, poxContractId, auth) {
+function verifySignerKeySig(stacksApi, network, poxContractId, auth, tip) {
     return __awaiter(this, void 0, void 0, function* () {
         const poxAddress = (0, index_1.getHashBytesFromAddress)(network, auth.rewardAddress);
         if (!poxAddress)
@@ -423,6 +417,10 @@ function verifySignerKeySig(stacksApi, network, poxContractId, auth) {
             functionName: 'verify-signer-key-sig',
             functionArgs,
         };
+        if (tip) {
+            data.tip = tip;
+            data.contractName = getPoxContractFromHeight(tip);
+        }
         let funding;
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
@@ -435,7 +433,7 @@ function verifySignerKeySig(stacksApi, network, poxContractId, auth) {
         return;
     });
 }
-function readDelegationEvents(stacksApi, network, poxContract, poolPrincipal, offset, limit) {
+function readDelegationEvents(stacksApi, network, poxContractId, poolPrincipal, offset, limit) {
     return __awaiter(this, void 0, void 0, function* () {
         const poxInfo = yield (0, stacks_node_1.getPoxInfo)(stacksApi);
         const url = stacksApi + '/extended/beta/stacking/' + poolPrincipal + '/delegations?offset=' + offset + '&limit=' + limit;
@@ -445,7 +443,7 @@ function readDelegationEvents(stacksApi, network, poxContract, poolPrincipal, of
             const val = yield response.json();
             if (val) {
                 for (const event of val.results) {
-                    const cycle = yield getBurnHeightToRewardCycle(stacksApi, poxContract, event.block_height);
+                    const cycle = yield getBurnHeightToRewardCycle(stacksApi, poxContractId, event.block_height);
                     if (cycle >= startSlot(network))
                         event.cycle = cycle;
                 }

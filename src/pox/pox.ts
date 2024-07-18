@@ -6,7 +6,7 @@ import { fetchBlockAtHeight, getAddressFromHashBytes, getHashBytesFromAddress } 
 import { VerifySignerKey } from '../signer';
 
 
-export async function getPoxContractFromCycle(cycle:number) {
+export function getPoxContractFromCycle(cycle:number) {
 	if (cycle < 56) {
 	  return 'pox'
 	} else if (cycle < 60) {
@@ -18,11 +18,23 @@ export async function getPoxContractFromCycle(cycle:number) {
 	}
 }
   
-export async function getBurnHeightToRewardCycle(stacksApi:string, poxContract:string, height:number):Promise<any> {
+export function getPoxContractFromHeight(height:number) {
+	if (height < 783650) {
+	  return 'pox'
+	} else if (height < 792050) {
+	  return 'pox-2'
+	} else if (height < 842450) {
+	  return 'pox-3'
+	} else {
+	  return 'pox-4'
+	}
+}
+  
+export async function getBurnHeightToRewardCycle(stacksApi:string, poxContractId:string, height:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(height)))}`];
 	const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: poxContractId.split('.')[1],
 	  functionName: 'burn-height-to-reward-cycle',
 	  functionArgs,
 	}
@@ -34,11 +46,11 @@ export async function getBurnHeightToRewardCycle(stacksApi:string, poxContract:s
 	return { cycle, height }
 }
   
-export async function getRewardCycleToBurnHeight(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+export async function getRewardCycleToBurnHeight(stacksApi:string, poxContractId:string, cycle:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
 	const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: poxContractId.split('.')[1],
 	  functionName: 'reward-cycle-to-burn-height',
 	  functionArgs,
 	}
@@ -49,33 +61,30 @@ export async function getRewardCycleToBurnHeight(stacksApi:string, poxContract:s
 	return { cycle }
 }
 
-export async function getPoxCycleInfo(stacksApi:string, poxContract:string, cycle:number):Promise<PoxCycleInfo> {
-	const totalStacked = await getTotalUstxStacked(stacksApi, poxContract, cycle)
-	const numRewardSetPoxAddresses = await getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle)
-	const numbEntriesRewardCyclePoxList = await getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle)
-	const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContract, cycle)
-	const rewardSetSize = await getRewardSetSize(stacksApi, poxContract, cycle)
+export async function getPoxCycleInfo(stacksApi:string, poxContractId:string, cycle:number):Promise<PoxCycleInfo> {
+	const totalStacked = await getTotalUstxStacked(stacksApi, poxContractId, cycle)
+	const numbEntriesRewardCyclePoxList = await getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle)
+	const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContractId, cycle)
+	const rewardSetSize = await getRewardSetSize(stacksApi, poxContractId, cycle)
 	return {
 		firstBlockHeight:0,
 		lastBlockHeight:0,
 		firstBlockTime:0,
 		lastBlockTime:0,
 		rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
-		numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
 		numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
 		totalPoxRejection: (totalPoxRejection) ? Number(totalPoxRejection) : 0,
 		totalUstxStacked: totalStacked
 	};
   }
   
-export async function getPoxCycleInfoRelative(stacksApi:string, mempoolApi:string, poxContract:string, cycle:number, currentBurnHeight:number):Promise<PoxCycleInfo> {
+export async function getPoxCycleInfoRelative(stacksApi:string, mempoolApi:string, poxContractId:string, cycle:number, currentBurnHeight:number):Promise<PoxCycleInfo> {
   
-	const result1 = await getRewardCycleToBurnHeight(stacksApi, poxContract, cycle)
-	const totalStacked = await getTotalUstxStacked(stacksApi, poxContract, cycle)
-	const numRewardSetPoxAddresses = await getNumRewardSetPoxAddresses(stacksApi, poxContract, cycle)
-	const numbEntriesRewardCyclePoxList = await getNumbEntriesRewardCyclePoxList(stacksApi, poxContract, cycle)
-	//const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContract, cycle)
-	const rewardSetSize = await getRewardSetSize(stacksApi, poxContract, cycle)
+	const result1 = await getRewardCycleToBurnHeight(stacksApi, poxContractId, cycle)
+	const totalStacked = await getTotalUstxStacked(stacksApi, poxContractId, cycle)
+	const numbEntriesRewardCyclePoxList = await getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle)
+	//const totalPoxRejection = await getTotalPoxRejection(stacksApi, poxContractId, cycle)
+	const rewardSetSize = await getRewardSetSize(stacksApi, poxContractId, cycle)
   
 	const firstBlockHeight = Number(result1.cycle.value)
 	const lastBlockHeight = Number(result1.cycle.value) + REWARD_CYCLE_LENGTH + PREPARE_CYCLE_LENGTH - 1
@@ -110,7 +119,6 @@ export async function getPoxCycleInfoRelative(stacksApi:string, mempoolApi:strin
 	  firstBlockTime,
 	  lastBlockTime,
 	  rewardSetSize: (cycle > 0 && rewardSetSize) ? Number(rewardSetSize) : 0,
-	  numRewardSetPoxAddresses: (numRewardSetPoxAddresses) ? Number(numRewardSetPoxAddresses) : 0,
 	  numbEntriesRewardCyclePoxList: (numbEntriesRewardCyclePoxList) ? Number(numbEntriesRewardCyclePoxList) : 0,
 	  totalPoxRejection: -1,
 	  totalUstxStacked: totalStacked
@@ -119,11 +127,11 @@ export async function getPoxCycleInfoRelative(stacksApi:string, mempoolApi:strin
   
   
   
-export  async function getTotalUstxStacked(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+export  async function getTotalUstxStacked(stacksApi:string, poxContractId:string, cycle:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
 	const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: getPoxContractFromCycle(cycle),
 	  functionName: 'get-total-ustx-stacked',
 	  functionArgs,
 	}
@@ -131,11 +139,11 @@ export  async function getTotalUstxStacked(stacksApi:string, poxContract:string,
 	return (val.value) ? val.value : 0;
   }
   
-export  async function getRewardSetPoxAddress(stacksApi:string, poxContract:string, cycle:number, index:number):Promise<any> {
+export  async function getRewardSetPoxAddress(stacksApi:string, poxContractId:string, cycle:number, index:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`, `0x${hex.encode(serializeCV(uintCV(index)))}`];
 	  const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: getPoxContractFromCycle(cycle),
 	  functionName: 'get-reward-set-pox-address',
 	  functionArgs,
 	}
@@ -143,35 +151,24 @@ export  async function getRewardSetPoxAddress(stacksApi:string, poxContract:stri
 	return (val.value) ? val.value.value: 0
   }
   
-export async function getNumbEntriesRewardCyclePoxList(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+export async function getNumbEntriesRewardCyclePoxList(stacksApi:string, poxContractId:string, cycle:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
 	  const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: getPoxContractFromCycle(cycle),
 	  functionName: 'get-num-reward-set-pox-addresses',
 	  functionArgs,
 	}
 	const val = (await callContractReadOnly(stacksApi, data));
 	return (val.value) ? val.value: 0
-  }
-  
-export  async function getTotalPoxRejection(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
-	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
-	  const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
-	  functionName: 'get-total-pox-rejection',
-	  functionArgs,
-	}
-	const val = (await callContractReadOnly(stacksApi, data));
-	return (val.value) ? Number(val.value) : 0
-  }
-  
-export  async function getRewardSetSize(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+}
+
+// includes reward slots currently under stacking limit.
+export  async function getRewardSetSize(stacksApi:string, poxContractId:string, cycle:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
 	const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: getPoxContractFromCycle(cycle),
 	  functionName: 'get-reward-set-size',
 	  functionArgs,
 	}
@@ -179,35 +176,36 @@ export  async function getRewardSetSize(stacksApi:string, poxContract:string, cy
 	return (val.value) ? val.value: 0
   }
   
-export  async function getNumRewardSetPoxAddresses(stacksApi:string, poxContract:string, cycle:number):Promise<any> {
+
+
+export  async function getTotalPoxRejection(stacksApi:string, poxContractId:string, cycle:number):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
-	const data = {
-	  contractAddress: poxContract.split('.')[0],
-	  contractName: poxContract.split('.')[1],
-	  functionName: 'get-num-reward-set-pox-addresses',
+	  const data = {
+	  contractAddress: poxContractId.split('.')[0],
+	  contractName: getPoxContractFromCycle(cycle),
+	  functionName: 'get-total-pox-rejection',
 	  functionArgs,
 	}
-	try {
-	  const result = await callContractReadOnly(stacksApi, data);
-	  return result.value;
-	} catch (e) {
-	  return { stacked: 0 }
-	}
+	const val = (await callContractReadOnly(stacksApi, data));
+	return (val.value) ? Number(val.value) : 0
 }
   
-export async function getAllowanceContractCallers(stacksApi:string, poxContractId:string, address:string, contract:string):Promise<any> {
+export async function getAllowanceContractCallers(stacksApi:string, poxContractId:string, address:string, contract:string, tip?:number|undefined):Promise<any> {
 	const functionArgs = [`0x${hex.encode(serializeCV(principalCV(address)))}`, `0x${hex.encode(serializeCV(contractPrincipalCV(contract.split('.')[0], contract.split('.')[1] )))}`];
 	const data = {
 	  contractAddress: poxContractId.split('.')[0],
 	  contractName: poxContractId.split('.')[1],
 	  functionName: 'get-allowance-contract-callers',
 	  functionArgs,
+	} as any
+	if (tip) {
+		data.tip = tip
+		data.contractName = getPoxContractFromHeight(tip)
 	}
-	let funding:string;
 	try {
 	  const result = await callContractReadOnly(stacksApi, data);
 	  return result;
-	} catch (e) { funding = '0' }
+	} catch (e) {  }
 	return { stacked: 0 }
 }
 
@@ -224,7 +222,7 @@ export async function getPartialStackedByCycle(stacksApi:string, network:string,
 	  ];
 	  const data = {
 		contractAddress: poxContractId.split('.')[0],
-		contractName: poxContractId.split('.')[1],
+		contractName: getPoxContractFromCycle(cycle),
 		functionName: 'get-partial-stacked-by-cycle',
 		functionArgs,
 	  }
@@ -245,15 +243,18 @@ export async function getPartialStackedByCycle(stacksApi:string, network:string,
 	};
   }
   
-  async function getStackerInfo(stacksApi:string, network:string, poxContractId:string, address:string):Promise<Stacker|undefined> {
+  async function getStackerInfo(stacksApi:string, network:string, poxContractId:string, address:string, tip?:number|undefined):Promise<Stacker|undefined> {
 	const functionArgs = [`0x${hex.encode(serializeCV(principalCV(address)))}`];
 	const data = {
 	  contractAddress: poxContractId.split('.')[0],
 	  contractName: poxContractId.split('.')[1],
 	  functionName: 'get-stacker-info',
 	  functionArgs,
+	} as any
+	if (tip) {
+		data.tip = tip
+		data.contractName = getPoxContractFromHeight(tip)
 	}
-	let funding:string;
 	try {
 	  const result = await callContractReadOnly(stacksApi, data);
 	  return (result.value) ? {
@@ -279,10 +280,10 @@ export async function getPartialStackedByCycle(stacksApi:string, network:string,
 	   */
   
   
-	} catch (e) { funding = '0' }
+	} catch (e) {  }
 	return
   }
-export async function getCheckDelegation(stacksApi:string, poxContractId:string, address:string):Promise<Delegation> {
+export async function getCheckDelegation(stacksApi:string, poxContractId:string, address:string, tip?:number|undefined):Promise<Delegation> {
 	try {
 	  const functionArgs = [`0x${hex.encode(serializeCV(principalCV(address)))}`];
 	  const data = {
@@ -314,7 +315,7 @@ export async function getPoxRejection(stacksApi:string, poxContractId:string, ad
 	const functionArgs = [`0x${hex.encode(serializeCV(principalCV(address)))}`,`0x${hex.encode(serializeCV(uintCV(cycle)))}`];
 	const data = {
 	  contractAddress: poxContractId.split('.')[0],
-	  contractName: poxContractId.split('.')[1],
+	  contractName: getPoxContractFromCycle(cycle),
 	  functionName: 'get-pox-rejection',
 	  functionArgs,
 	}
@@ -322,23 +323,26 @@ export async function getPoxRejection(stacksApi:string, poxContractId:string, ad
 	return (val.value) ? { poxRejectionPerStackerPerCycle: val.value.value } : { poxRejectionPerStackerPerCycle: 0 }
 }
 
-export async function checkCallerAllowed(stacksApi:string, poxContractId:string, stxAddress:string):Promise<any> {
+export async function checkCallerAllowed(stacksApi:string, poxContractId:string, stxAddress:string, tip?:number|undefined):Promise<any> {
 	const data = {
 	  contractAddress: poxContractId.split('.')[0],
 	  sender: stxAddress,
 	  contractName: poxContractId.split('.')[1],
 	  functionName: 'check-caller-allowed',
 	  functionArgs: [],
+	} as any
+	if (tip) {
+		data.tip = tip
+		data.contractName = getPoxContractFromHeight(tip)
 	}
-	let allowed:false;
 	try {
 	  const result = await callContractReadOnly(stacksApi, data);
 	  return { allowed: result };
-	} catch (e) { allowed = false }
+	} catch (e) {  }
 	return { allowed: false }
   }
 
-  export async function verifySignerKeySig(stacksApi:string, network:string, poxContractId:string, auth:VerifySignerKey):Promise<Stacker|undefined> {
+  export async function verifySignerKeySig(stacksApi:string, network:string, poxContractId:string, auth:VerifySignerKey, tip?:number|undefined):Promise<Stacker|undefined> {
 	const poxAddress = getHashBytesFromAddress(network, auth.rewardAddress)
 	if (!poxAddress) return
 	if (!auth.signerKey) return
@@ -358,7 +362,12 @@ export async function checkCallerAllowed(stacksApi:string, poxContractId:string,
 	  contractName: poxContractId.split('.')[1],
 	  functionName: 'verify-signer-key-sig',
 	  functionArgs,
+	} as any
+	if (tip) {
+		data.tip = tip
+		data.contractName = getPoxContractFromHeight(tip)
 	}
+
 	let funding:string;
 	try {
 	  const result = await callContractReadOnly(stacksApi, data);
@@ -370,7 +379,7 @@ export async function checkCallerAllowed(stacksApi:string, poxContractId:string,
   }
   
 
-  export async function readDelegationEvents(stacksApi:string, network:string, poxContract:string, poolPrincipal:string, offset:number, limit:number) {
+  export async function readDelegationEvents(stacksApi:string, network:string, poxContractId:string, poolPrincipal:string, offset:number, limit:number) {
 
 	const poxInfo = await getPoxInfo(stacksApi)
 	const url = stacksApi + '/extended/beta/stacking/' + poolPrincipal + '/delegations?offset=' + offset + '&limit=' + limit;
@@ -380,7 +389,7 @@ export async function checkCallerAllowed(stacksApi:string, poxContractId:string,
 	  const val = await response.json();
 	  if (val) {
 		for (const event of val.results) {
-		  const cycle = await getBurnHeightToRewardCycle(stacksApi, poxContract, event.block_height)
+		  const cycle = await getBurnHeightToRewardCycle(stacksApi, poxContractId, event.block_height)
 		  if (cycle >= startSlot(network)) event.cycle = cycle
 		}
 	  }

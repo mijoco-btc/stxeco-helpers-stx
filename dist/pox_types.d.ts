@@ -15,7 +15,6 @@ export type PoxCycleInfo = {
     firstBlockTime: number;
     lastBlockTime: number;
     rewardSetSize: number;
-    numRewardSetPoxAddresses: number;
     numbEntriesRewardCyclePoxList: number;
     totalPoxRejection: number;
     totalUstxStacked: number;
