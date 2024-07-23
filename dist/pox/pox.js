@@ -10,7 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPoxContractFromCycle = getPoxContractFromCycle;
-exports.getPoxContractFromHeight = getPoxContractFromHeight;
+exports.getPoxContractFromBurnHeight = getPoxContractFromBurnHeight;
+exports.getPoxContractFromStacksHeight = getPoxContractFromStacksHeight;
 exports.getBurnHeightToRewardCycle = getBurnHeightToRewardCycle;
 exports.getRewardCycleToBurnHeight = getRewardCycleToBurnHeight;
 exports.getPoxCycleInfo = getPoxCycleInfo;
@@ -23,6 +24,7 @@ exports.getTotalPoxRejection = getTotalPoxRejection;
 exports.getAllowanceContractCallers = getAllowanceContractCallers;
 exports.getPartialStackedByCycle = getPartialStackedByCycle;
 exports.getStackerInfoFromContract = getStackerInfoFromContract;
+exports.getStackerInfo = getStackerInfo;
 exports.getCheckDelegation = getCheckDelegation;
 exports.getPoxRejection = getPoxRejection;
 exports.checkCallerAllowed = checkCallerAllowed;
@@ -48,7 +50,7 @@ function getPoxContractFromCycle(cycle) {
         return 'pox-4';
     }
 }
-function getPoxContractFromHeight(height) {
+function getPoxContractFromBurnHeight(height) {
     if (height < 783650) {
         return 'pox';
     }
@@ -56,6 +58,20 @@ function getPoxContractFromHeight(height) {
         return 'pox-2';
     }
     else if (height < 842450) {
+        return 'pox-3';
+    }
+    else {
+        return 'pox-4';
+    }
+}
+function getPoxContractFromStacksHeight(height) {
+    if (height < 100670) {
+        return 'pox';
+    }
+    else if (height < 107473) {
+        return 'pox-2';
+    }
+    else if (height < 149154) {
         return 'pox-3';
     }
     else {
@@ -192,11 +208,16 @@ function getRewardSetPoxAddress(stacksApi, poxContractId, cycle, index) {
 }
 function getNumbEntriesRewardCyclePoxList(stacksApi, poxContractId, cycle) {
     return __awaiter(this, void 0, void 0, function* () {
+        const poxContract = getPoxContractFromCycle(cycle);
+        let functionName = 'get-num-reward-set-pox-addresses';
+        if (poxContract === 'pox') {
+            functionName = 'get-reward-set-size';
+        }
         const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.uintCV)(cycle)))}`];
         const data = {
             contractAddress: poxContractId.split('.')[0],
-            contractName: getPoxContractFromCycle(cycle),
-            functionName: 'get-num-reward-set-pox-addresses',
+            contractName: poxContract,
+            functionName,
             functionArgs,
         };
         const val = (yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data));
@@ -241,7 +262,7 @@ function getAllowanceContractCallers(stacksApi, poxContractId, address, contract
         };
         if (tip) {
             data.tip = tip;
-            data.contractName = getPoxContractFromHeight(tip);
+            data.contractName = getPoxContractFromStacksHeight(tip);
         }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
@@ -300,7 +321,7 @@ function getStackerInfo(stacksApi, network, poxContractId, address, tip) {
         };
         if (tip) {
             data.tip = tip;
-            data.contractName = getPoxContractFromHeight(tip);
+            data.contractName = getPoxContractFromStacksHeight(tip);
         }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
@@ -339,6 +360,10 @@ function getCheckDelegation(stacksApi, poxContractId, address, tip) {
                 functionName: 'get-check-delegation',
                 functionArgs,
             };
+            if (tip) {
+                data.tip = tip;
+                data.contractName = getPoxContractFromStacksHeight(tip);
+            }
             const val = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             //console.log('getCheckDelegation: ', val.value)
             return (val.value) ? {
@@ -383,7 +408,7 @@ function checkCallerAllowed(stacksApi, poxContractId, stxAddress, tip) {
         };
         if (tip) {
             data.tip = tip;
-            data.contractName = getPoxContractFromHeight(tip);
+            data.contractName = getPoxContractFromStacksHeight(tip);
         }
         try {
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
@@ -419,7 +444,7 @@ function verifySignerKeySig(stacksApi, network, poxContractId, auth, tip) {
         };
         if (tip) {
             data.tip = tip;
-            data.contractName = getPoxContractFromHeight(tip);
+            data.contractName = getPoxContractFromStacksHeight(tip);
         }
         let funding;
         try {

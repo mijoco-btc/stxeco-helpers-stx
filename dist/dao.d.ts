@@ -162,6 +162,7 @@ export type ProposalData = {
     burnEndHeight: number;
 };
 export type VoteEvent = {
+    _id: ObjectId;
     stackerData?: any;
     event: string;
     source: string;

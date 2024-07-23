@@ -173,6 +173,7 @@ export type PoxAddress = {
 };
 export type PoolStackerEvent = {
     _id?: string;
+    poxContractName?: string;
     eventIndex: number;
     event: string;
     locked: number;

@@ -1,6 +1,6 @@
 {
   "name": "@mijoco/stx_helpers",
-  "version": "0.4.5",
+  "version": "0.5.1",
   "main": "index.js",
   "types": "dist/index.d.ts",
   "files": [

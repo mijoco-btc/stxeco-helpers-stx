@@ -139,13 +139,16 @@ function callContractReadOnly(stacksApi, data) {
 }
 function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight) {
     return __awaiter(this, void 0, void 0, function* () {
-        let url = `${stacksApi}/extended/v1/block/by_burn_block_height/${burnHeight}`;
+        let url = `${stacksApi}/extended/v2/burn-blocks/${burnHeight}/blocks`;
         let response = yield fetch(url);
         if (response.status !== 200) {
             return -1; // burn height in future.
         }
         let val = yield response.json();
-        return val.height;
+        if (!val || !val.results || val.results.length === 0)
+            return 0;
+        console.log('getStacksHeightFromBurnBlockHeight: burnHeight: ' + burnHeight, val.results);
+        return val.results[0].height;
     });
 }
 function getPoxInfo(stacksApi) {

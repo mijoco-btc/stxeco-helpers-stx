@@ -168,6 +168,7 @@ export type ProposalData = {
 }
 
 export type VoteEvent = {
+  _id:ObjectId;
   stackerData?: any;
   event: string;
   source: string;

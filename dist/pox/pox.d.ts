@@ -1,7 +1,8 @@
 import { Delegation, PoxCycleInfo, Stacker, StackerInfo } from '../pox_types';
 import { VerifySignerKey } from '../signer';
 export declare function getPoxContractFromCycle(cycle: number): "pox" | "pox-2" | "pox-3" | "pox-4";
-export declare function getPoxContractFromHeight(height: number): "pox" | "pox-2" | "pox-3" | "pox-4";
+export declare function getPoxContractFromBurnHeight(height: number): "pox" | "pox-2" | "pox-3" | "pox-4";
+export declare function getPoxContractFromStacksHeight(height: number): "pox" | "pox-2" | "pox-3" | "pox-4";
 export declare function getBurnHeightToRewardCycle(stacksApi: string, poxContractId: string, height: number): Promise<any>;
 export declare function getRewardCycleToBurnHeight(stacksApi: string, poxContractId: string, cycle: number): Promise<any>;
 export declare function getPoxCycleInfo(stacksApi: string, poxContractId: string, cycle: number): Promise<PoxCycleInfo>;
@@ -14,6 +15,7 @@ export declare function getTotalPoxRejection(stacksApi: string, poxContractId: s
 export declare function getAllowanceContractCallers(stacksApi: string, poxContractId: string, address: string, contract: string, tip?: number | undefined): Promise<any>;
 export declare function getPartialStackedByCycle(stacksApi: string, network: string, poxContractId: string, address: string, cycle: number, sender: string): Promise<any>;
 export declare function getStackerInfoFromContract(stacksApi: string, network: string, poxContractId: string, address: string, cycle: number): Promise<StackerInfo>;
+export declare function getStackerInfo(stacksApi: string, network: string, poxContractId: string, address: string, tip?: number | undefined): Promise<Stacker | undefined>;
 export declare function getCheckDelegation(stacksApi: string, poxContractId: string, address: string, tip?: number | undefined): Promise<Delegation>;
 export declare function getPoxRejection(stacksApi: string, poxContractId: string, address: string, cycle: number): Promise<any>;
 export declare function checkCallerAllowed(stacksApi: string, poxContractId: string, stxAddress: string, tip?: number | undefined): Promise<any>;
