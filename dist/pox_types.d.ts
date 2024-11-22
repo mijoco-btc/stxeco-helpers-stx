@@ -179,6 +179,7 @@ export type PoolStackerEvent = {
     locked: number;
     balance: number;
     stacker: string;
+    bitcoinAddr?: string;
     burnchainUnlockHeight: number;
     data: DelegationStx | RevokeDelegateStx | DelegationAggregationIncrease | DelegationStackExtend | DelegationStackStx | DelegationStackIncrease | StackStx | StackIncrease | StackExtend | HandleUnlock;
 };

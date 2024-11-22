@@ -100,6 +100,8 @@ export type StackerProposalData = {
     stacksAddressNo: string;
     bitcoinAddressYes: string;
     bitcoinAddressNo: string;
+    removed?: boolean;
+    nodao: boolean;
     sip: boolean;
     reportedResults?: {
         soloFor: number;
@@ -170,6 +172,8 @@ export type VoteEvent = {
     voterProxy: string;
     for: boolean;
     amount: number;
+    amountUnlocked: number;
+    amountLocked: number;
     amountNested: number;
     votingContractId: string;
     proposalContractId: string;
