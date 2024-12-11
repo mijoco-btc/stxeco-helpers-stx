@@ -1,6 +1,6 @@
-import * as btc from '@scure/btc-signer';
-import { PayloadType } from '../sbtc.js';
-import { RevealerTransaction } from '../revealer_types.js';
+import * as btc from "@scure/btc-signer";
+import { PayloadType } from "../sbtc.js";
+import { RevealerTransaction } from "../revealer_types.js";
 /**
  * Mainnet magic
  * 5832 => X2
@@ -19,7 +19,7 @@ export declare const PEGIN_OPCODE = "3C";
 export declare const PEGOUT_OPCODE = "3E";
 export declare function bitcoinToSats(amountBtc: number): number;
 export declare function convertToRevealerTransaction(payload: PayloadType, tx: any): RevealerTransaction;
-export declare function parseRawPayload(network: string, d0: string, vout1Address: string | undefined, sigMode: 'rsv' | 'vrs'): PayloadType;
+export declare function parseRawPayload(network: string, d0: string, vout1Address: string | undefined, sigMode: "rsv" | "vrs"): PayloadType;
 export declare function parseDepositPayload(d1: Uint8Array): PayloadType;
 export declare function amountToUint8(amt: number, size: number): Uint8Array;
 /**
@@ -32,7 +32,7 @@ export function uint8ToAmount(buf:Uint8Array):number {
  */
 export declare function amountToBigUint64(amt: number, size: number): Uint8Array;
 export declare function bigUint64ToAmount(buf: Uint8Array): number;
-export declare function parseWithdrawPayload(network: string, d0: string, bitcoinAddress: string, sigMode: 'rsv' | 'vrs'): PayloadType;
+export declare function parseWithdrawPayload(network: string, d0: string, bitcoinAddress: string, sigMode: "rsv" | "vrs"): PayloadType;
 export declare enum PrincipalType {
     STANDARD = "05",
     CONTRACT = "06"
@@ -118,9 +118,9 @@ export declare function toStorable(script: any): {
     tweakedPubkey: string | Uint8Array | undefined;
 };
 /**
-* getAddressFromOutScript converts a script to an address
-* @param network:string
-* @param script: Uint8Array
-* @returns address as string
-*/
+ * getAddressFromOutScript converts a script to an address
+ * @param network:string
+ * @param script: Uint8Array
+ * @returns address as string
+ */
 export declare function getAddressFromOutScript(network: string, script: Uint8Array): string;

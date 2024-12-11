@@ -68,19 +68,19 @@ const P = __importStar(require("micro-packed"));
  * 4845 => HE ??
  * 5255 => RU ??
  */
-exports.MAGIC_BYTES_TESTNET = '5432'; // 
-exports.MAGIC_BYTES_TESTNET_NAK = '4e33';
-exports.MAGIC_BYTES_MAINNET = '5832';
-exports.MAGIC_BYTES_MAINNET_NAK = '5832';
-exports.PEGIN_OPCODE = '3C';
-exports.PEGOUT_OPCODE = '3E';
+exports.MAGIC_BYTES_TESTNET = "5432"; //
+exports.MAGIC_BYTES_TESTNET_NAK = "4e33";
+exports.MAGIC_BYTES_MAINNET = "5832";
+exports.MAGIC_BYTES_MAINNET_NAK = "5832";
+exports.PEGIN_OPCODE = "3C";
+exports.PEGOUT_OPCODE = "3E";
 const btcPrecision = 100000000;
 function bitcoinToSats(amountBtc) {
     return Math.round(amountBtc * btcPrecision);
 }
 function convertToRevealerTransaction(payload, tx) {
     if (!payload.stacksAddress)
-        throw new Error('payload.stacksAddress is required');
+        throw new Error("payload.stacksAddress is required");
     const revealerTx = {
         txId: tx.txid,
         originator: payload.stacksAddress,
@@ -88,39 +88,43 @@ function convertToRevealerTransaction(payload, tx) {
         paymentAddress: tx.vin[0].prevout.scriptpubkey_address,
         paymentPublicKey: tx.vin[0].prevout.scriptpubkey_type,
         mode: revealer_types_js_1.RevealerTxModes.OP_RETURN,
-        type: (payload.opcode === '3C') ? revealer_types_js_1.RevealerTxTypes.SBTC_DEPOSIT : revealer_types_js_1.RevealerTxTypes.SBTC_WITHDRAWAL,
-        created: (new Date()).getTime(),
-        updated: (new Date()).getTime(),
-        recipient: (payload.opcode === '3C') ? payload.stacksAddress : tx.vout[1].scriptpubkey_address,
+        type: payload.opcode === "3C"
+            ? revealer_types_js_1.RevealerTxTypes.SBTC_DEPOSIT
+            : revealer_types_js_1.RevealerTxTypes.SBTC_WITHDRAWAL,
+        created: new Date().getTime(),
+        updated: new Date().getTime(),
+        recipient: payload.opcode === "3C"
+            ? payload.stacksAddress
+            : tx.vout[1].scriptpubkey_address,
         signed: true,
         confirmations: tx.status.block_height,
         blockHeight: tx.status.block_height,
         status: revealer_types_js_1.CommitmentStatus.PENDING,
-        sbtcPublicKey: ''
+        sbtcPublicKey: "",
     };
     return revealerTx;
 }
 function parseRawPayload(network, d0, vout1Address, sigMode) {
-    let d1 = (base_1.hex.decode(d0)).subarray(4);
+    let d1 = base_1.hex.decode(d0).subarray(4);
     let magicOp = getMagicAndOpCode(d1);
-    if (magicOp.opcode !== '3C' && magicOp.opcode !== '3E') {
-        d1 = (base_1.hex.decode(d0)).subarray(5);
+    if (magicOp.opcode !== "3C" && magicOp.opcode !== "3E") {
+        d1 = base_1.hex.decode(d0).subarray(5);
         magicOp = getMagicAndOpCode(d1);
     }
-    if (magicOp.opcode === '3C') {
+    if (magicOp.opcode === "3C") {
         const payload = parseDepositPayload(d1);
         return payload;
     }
-    else if (magicOp.opcode === '3E') {
+    else if (magicOp.opcode === "3E") {
         try {
             if (vout1Address)
                 return parseWithdrawPayload(network, base_1.hex.encode(d1), vout1Address, sigMode);
             else
-                throw new Error('Withdrawal requires the address from output 1: ' + magicOp.opcode);
+                throw new Error("Withdrawal requires the address from output 1: " + magicOp.opcode);
         }
         catch (err) {
             return {
-                opcode: '3E',
+                opcode: "3E",
                 prinType: 0,
                 stacksAddress: undefined,
                 lengthOfCname: 0,
@@ -128,12 +132,12 @@ function parseRawPayload(network, d0, vout1Address, sigMode) {
                 lengthOfMemo: 0,
                 memo: undefined,
                 revealFee: 0,
-                amountSats: 0
+                amountSats: 0,
             };
         }
     }
     else {
-        throw new Error('Wrong opcode: ' + magicOp.opcode);
+        throw new Error("Wrong opcode: " + magicOp.opcode);
     }
 }
 function parseDepositPayload(d1) {
@@ -157,14 +161,14 @@ function parseDepositPayloadNoPrincipal(d1) {
         lengthOfMemo: 0,
         memo: undefined,
         revealFee: 0,
-        amountSats: 0
+        amountSats: 0,
     };
 }
 function parseDepositPayloadNoMagic(d1) {
     //console.log('payload rev: ', hex.encode(d1))
     const opcode = base_1.hex.encode(d1.subarray(0, 1)).toUpperCase();
     if (opcode.toUpperCase() !== exports.PEGIN_OPCODE)
-        throw new Error('Wrong OPCODE : expected: ' + exports.PEGIN_OPCODE + '  received: ' + opcode);
+        throw new Error("Wrong OPCODE : expected: " + exports.PEGIN_OPCODE + "  received: " + opcode);
     const prinType = parseInt(base_1.hex.encode(d1.subarray(1, 2)), 16);
     if (prinType === 22 || prinType === 26)
         return parseDepositPayloadNoPrincipal(d1);
@@ -183,12 +187,13 @@ function parseDepositPayloadNoMagic(d1) {
     //	memo = new TextDecoder().decode(d1.subarray(current + 1, lengthOfMemo + current + 1));
     //}
     let revealFee = 0;
-    if (d1.length > current + 1) { // + lengthOfMemo) {
+    if (d1.length > current + 1) {
+        // + lengthOfMemo) {
         //current = current + 1 + lengthOfMemo;
         const rev = d1.subarray(current);
-        console.log('parseDepositPayloadNoMagic: ' + base_1.hex.encode(rev));
+        console.log("parseDepositPayloadNoMagic: " + base_1.hex.encode(rev));
         revealFee = bigUint64ToAmount(rev);
-        console.log('parseDepositPayloadNoMagic:revealFee: ' + revealFee);
+        console.log("parseDepositPayloadNoMagic:revealFee: " + revealFee);
     }
     return {
         opcode,
@@ -199,7 +204,7 @@ function parseDepositPayloadNoMagic(d1) {
         lengthOfMemo: 0,
         memo: undefined,
         revealFee,
-        amountSats: 0
+        amountSats: 0,
     };
 }
 function amountToUint8(amt, size) {
@@ -228,7 +233,7 @@ function amountToBigUint64(amt, size) {
 }
 function bufferToHex(buffer) {
     return [...new Uint8Array(buffer)]
-        .map(b => b.toString(16).padStart(2, "0"))
+        .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 }
 function bigUint64ToAmount(buf) {
@@ -250,18 +255,19 @@ function parseWithdrawPayload(network, d0, bitcoinAddress, sigMode) {
 }
 function parseWithdrawalPayloadNoMagic(network, d1, bitcoinAddress, sigMode) {
     const opcode = base_1.hex.encode(d1.subarray(0, 1)).toUpperCase();
-    if (opcode !== '3E')
-        throw new Error('Wrong opcode for withdraw: should be 3E was ' + opcode);
+    if (opcode !== "3E")
+        throw new Error("Wrong opcode for withdraw: should be 3E was " + opcode);
     const amtB = d1.subarray(1, 9);
     const amountSats = bigUint64ToAmount(amtB);
-    let signature = (base_1.hex.encode(d1.subarray(9, 74)));
+    let signature = base_1.hex.encode(d1.subarray(9, 74));
     const msgHash = getStacksSimpleHashOfDataToSign(network, amountSats, bitcoinAddress);
     let stacksAddress;
     try {
         const pubKey = getPubkeySignature(base_1.hex.decode(msgHash), signature, sigMode);
-        console.log('parseWithdrawalPayloadNoMagic:pubKey: ' + base_1.hex.encode(pubKey));
+        console.log("parseWithdrawalPayloadNoMagic:pubKey: " + base_1.hex.encode(pubKey));
         const stxAddresses = getStacksAddressFromPubkey(pubKey);
-        stacksAddress = (network === network) ? stxAddresses.tp2pkh : stxAddresses.mp2pkh;
+        stacksAddress =
+            network === network ? stxAddresses.tp2pkh : stxAddresses.mp2pkh;
     }
     catch (err) {
         //
@@ -287,18 +293,20 @@ function buildDepositPayloadOpDrop(network, stacksAddress, revealFee) {
     return buildDepositPayloadInternal(net, revealFee, stacksAddress, true);
 }
 function buildDepositPayloadInternal(net, amountSats, address, opDrop) {
-    const magicBuf = (typeof net === 'object' && (net.bech32 === 'tb' || net.bech32 === 'bcrt')) ? base_1.hex.decode(exports.MAGIC_BYTES_TESTNET) : base_1.hex.decode(exports.MAGIC_BYTES_MAINNET);
+    const magicBuf = typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt")
+        ? base_1.hex.decode(exports.MAGIC_BYTES_TESTNET)
+        : base_1.hex.decode(exports.MAGIC_BYTES_MAINNET);
     const opCodeBuf = base_1.hex.decode(exports.PEGIN_OPCODE);
-    const addr = (0, c32check_1.c32addressDecode)(address.split('.')[0]);
+    const addr = (0, c32check_1.c32addressDecode)(address.split(".")[0]);
     //const addr0Buf = hex.encode(amountToUint8(addr[0], 1));
-    const addr0Buf = (base_1.hex.decode(addr[0].toString(16)));
+    const addr0Buf = base_1.hex.decode(addr[0].toString(16));
     const addr1Buf = base_1.hex.decode(addr[1]);
     const cnameLength = new Uint8Array(1);
     //const memoLength = new Uint8Array(1);
-    const principalType = (address.indexOf('.') > -1) ? base_1.hex.decode('06') : base_1.hex.decode('05');
+    const principalType = address.indexOf(".") > -1 ? base_1.hex.decode("06") : base_1.hex.decode("05");
     let buf1 = (0, common_1.concatBytes)(opCodeBuf, principalType, addr0Buf, addr1Buf);
-    if (address.indexOf('.') > -1) {
-        const cnameBuf = new TextEncoder().encode(address.split('.')[1]);
+    if (address.indexOf(".") > -1) {
+        const cnameBuf = new TextEncoder().encode(address.split(".")[1]);
         const cnameBufHex = base_1.hex.encode(cnameBuf);
         let cnameLen;
         try {
@@ -314,15 +322,15 @@ function buildDepositPayloadInternal(net, amountSats, address, opDrop) {
         buf1 = (0, common_1.concatBytes)(buf1, cnameLength);
     }
     /**
-    if (memo) {
-        const memoBuf = new TextEncoder().encode(memo);
-        const memoLength = hex.decode(memoBuf.length.toString(8));
-        buf1 = concat(buf1, memoLength, memoBuf);
-    } else {
-        memoLength.fill(0);
-        buf1 = concat(buf1, memoLength);
-    }
-     */
+      if (memo) {
+          const memoBuf = new TextEncoder().encode(memo);
+          const memoLength = hex.decode(memoBuf.length.toString(8));
+          buf1 = concat(buf1, memoLength, memoBuf);
+      } else {
+          memoLength.fill(0);
+          buf1 = concat(buf1, memoLength);
+      }
+       */
     if (opDrop) {
         const feeBuf = amountToBigUint64(amountSats, 8);
         buf1 = (0, common_1.concatBytes)(buf1, feeBuf);
@@ -353,7 +361,9 @@ function buildWithdrawPayloadOpDrop(network, amount, signature) {
     return buildWithdrawPayloadInternal(net, amount, signature, true);
 }
 function buildWithdrawPayloadInternal(net, amount, signature, opDrop) {
-    const magicBuf = (typeof net === 'object' && (net.bech32 === 'tb' || net.bech32 === 'bcrt')) ? base_1.hex.decode(exports.MAGIC_BYTES_TESTNET) : base_1.hex.decode(exports.MAGIC_BYTES_MAINNET);
+    const magicBuf = typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt")
+        ? base_1.hex.decode(exports.MAGIC_BYTES_TESTNET)
+        : base_1.hex.decode(exports.MAGIC_BYTES_MAINNET);
     const opCodeBuf = base_1.hex.decode(exports.PEGOUT_OPCODE);
     ///const amountBuf = amountToBigUint64(amount, 8);
     const amountBytes = P.U64BE.encode(BigInt(amount));
@@ -365,7 +375,7 @@ function buildWithdrawPayloadInternal(net, amount, signature, opDrop) {
 }
 function readDepositValue(outputs) {
     let amountSats = 0;
-    if (outputs[0].scriptPubKey.type.toLowerCase() === 'nulldata') {
+    if (outputs[0].scriptPubKey.type.toLowerCase() === "nulldata") {
         amountSats = bitcoinToSats(outputs[1].value);
     }
     else {
@@ -377,7 +387,7 @@ function parsePayloadFromOutput(network, tx) {
     //const out0 = tx.getOutput(0)
     //let d1 = out0.script?.subarray(5) as Uint8Array // strip the op type and data length
     const vout1Address = getAddressFromOutScript(network, tx.getOutput(1).script || new Uint8Array());
-    let payload = parseRawPayload(network, base_1.hex.encode(tx.getOutput(0).script || new Uint8Array()), vout1Address, 'vrs');
+    let payload = parseRawPayload(network, base_1.hex.encode(tx.getOutput(0).script || new Uint8Array()), vout1Address, "vrs");
     return payload;
 }
 /**
@@ -389,7 +399,11 @@ function parsePayloadFromOutput(network, tx) {
  */
 function getDataToSign(network, amount, bitcoinAddress) {
     const net = (0, account_js_1.getNet)(network);
-    const tx = new btc.Transaction({ allowUnknowOutput: true, allowUnknownInputs: true, allowUnknownOutputs: true });
+    const tx = new btc.Transaction({
+        allowUnknowOutput: true,
+        allowUnknownInputs: true,
+        allowUnknownOutputs: true,
+    });
     tx.addOutputAddress(bitcoinAddress, BigInt(amount), net);
     const amountBytes = P.U64BE.encode(BigInt(amount));
     const data = (0, common_1.concatBytes)(amountBytes, tx.getOutput(0).script);
@@ -403,9 +417,9 @@ function getStacksSimpleHashOfDataToSign(network, amount, bitcoinAddress) {
     return base_1.hex.encode(msgHash);
 }
 function reverseSigBits(signature) {
-    if (signature.startsWith('00')) {
+    if (signature.startsWith("00")) {
         const sig = signature.substring(2);
-        return sig + '00';
+        return sig + "00";
         //} else {
         //	const sig = signature.substring(0, signature.length - 2)
         //	const sigPre = signature.substring(signature.length - 2)
@@ -415,20 +429,26 @@ function reverseSigBits(signature) {
 }
 function getPubkeySignature(messageHash, signature, sigMode) {
     /**
-    const sigM = recoverSignature({ signature: signature, mode: sigMode }); // vrs to rsv
-    let sig = new secp.Signature(sigM.signature.r, sigM.signature.s);
-    const recBit = parseInt(hex.encode(hex.decode(signature).subarray(0,1)))
-    //console.log('getPubkeySignature:signature' + signature)
-    //console.log('getPubkeySignature:recBit' + recBit)
-    //console.log('getPubkeySignature:sigMode' + sigMode)
-    sig = sig.addRecoveryBit(recBit);
-    const pubkeyM = sig.recoverPublicKey(messageHash);
-    const pubkey = hex.decode(pubkeyM.toHex());
-    //console.log(pubkeyM.toHex())
-     */
-    let pubkey = (0, transactions_1.publicKeyFromSignatureVrs)(base_1.hex.encode(messageHash), { data: signature, type: transactions_1.StacksMessageType.MessageSignature });
-    if (sigMode === 'rsv') {
-        pubkey = (0, transactions_1.publicKeyFromSignatureRsv)(base_1.hex.encode(messageHash), { data: signature, type: transactions_1.StacksMessageType.MessageSignature });
+      const sigM = recoverSignature({ signature: signature, mode: sigMode }); // vrs to rsv
+      let sig = new secp.Signature(sigM.signature.r, sigM.signature.s);
+      const recBit = parseInt(hex.encode(hex.decode(signature).subarray(0,1)))
+      //console.log('getPubkeySignature:signature' + signature)
+      //console.log('getPubkeySignature:recBit' + recBit)
+      //console.log('getPubkeySignature:sigMode' + sigMode)
+      sig = sig.addRecoveryBit(recBit);
+      const pubkeyM = sig.recoverPublicKey(messageHash);
+      const pubkey = hex.decode(pubkeyM.toHex());
+      //console.log(pubkeyM.toHex())
+       */
+    let pubkey = (0, transactions_1.publicKeyFromSignatureVrs)(base_1.hex.encode(messageHash), {
+        data: signature,
+        type: transactions_1.StacksMessageType.MessageSignature,
+    });
+    if (sigMode === "rsv") {
+        pubkey = (0, transactions_1.publicKeyFromSignatureRsv)(base_1.hex.encode(messageHash), {
+            data: signature,
+            type: transactions_1.StacksMessageType.MessageSignature,
+        });
     }
     return base_1.hex.decode(pubkey);
 }
@@ -439,11 +459,11 @@ function getPubkeySignature(messageHash, signature, sigMode) {
  * @returns
  */
 function getStacksAddressFromSignature(messageHash, signature) {
-    const pubkey = getPubkeySignature(messageHash, signature, 'vrs');
+    const pubkey = getPubkeySignature(messageHash, signature, "vrs");
     return getStacksAddressFromPubkey(pubkey);
 }
 function getStacksAddressFromSignatureRsv(messageHash, signature) {
-    const pubkey = getPubkeySignature(messageHash, signature, 'rsv');
+    const pubkey = getPubkeySignature(messageHash, signature, "rsv");
     return getStacksAddressFromPubkey(pubkey);
 }
 function getStacksAddressFromPubkey(pubkey) {
@@ -465,16 +485,16 @@ function hash160(input) {
 }
 function getMagicAndOpCode(d1) {
     if (!d1 || d1.length < 2)
-        throw new Error('no magic data passed');
+        throw new Error("no magic data passed");
     const magic = base_1.hex.encode(d1.subarray(0, 2));
     if (magic === exports.MAGIC_BYTES_TESTNET || magic === exports.MAGIC_BYTES_MAINNET) {
         return {
             magic: magic.toUpperCase(),
-            opcode: base_1.hex.encode(d1.subarray(2, 3)).toUpperCase()
+            opcode: base_1.hex.encode(d1.subarray(2, 3)).toUpperCase(),
         };
     }
     return {
-        opcode: base_1.hex.encode(d1.subarray(0, 1)).toUpperCase()
+        opcode: base_1.hex.encode(d1.subarray(0, 1)).toUpperCase(),
     };
 }
 var StacksNetworkVersion;
@@ -491,7 +511,7 @@ var StacksNetworkVersion;
  */
 function fromStorable(script) {
     const clone = JSON.parse(JSON.stringify(script));
-    if (typeof script.tweakedPubkey !== 'string')
+    if (typeof script.tweakedPubkey !== "string")
         return clone;
     return codifyScript(clone, true);
 }
@@ -508,12 +528,14 @@ function codifyScript(script, asString) {
     return {
         address: script.address,
         script: codify(script.script, asString),
-        paymentType: (script.type) ? script.type : script.paymentType,
+        paymentType: script.type ? script.type : script.paymentType,
         witnessScript: codify(script.witnessScript, asString),
         redeemScript: codify(script.redeemScript, asString),
-        leaves: (script.leaves) ? codifyLeaves(script.leaves, asString) : undefined,
+        leaves: script.leaves ? codifyLeaves(script.leaves, asString) : undefined,
         tapInternalKey: codify(script.tapInternalKey, asString),
-        tapLeafScript: (script.tapLeafScript) ? codifyTapLeafScript(script.tapLeafScript, asString) : undefined,
+        tapLeafScript: script.tapLeafScript
+            ? codifyTapLeafScript(script.tapLeafScript, asString)
+            : undefined,
         tapMerkleRoot: codify(script.tapMerkleRoot, asString),
         tweakedPubkey: codify(script.tweakedPubkey, asString),
     };
@@ -542,7 +564,7 @@ function codifyTapLeafScript(tapLeafScript, asString) {
 function codify(arg, asString) {
     if (!arg)
         return;
-    if (typeof arg === 'string') {
+    if (typeof arg === "string") {
         return base_1.hex.decode(arg);
     }
     else {
@@ -575,38 +597,35 @@ function codifyLeaves(leaves, asString) {
     return leaves;
 }
 /**
-* getAddressFromOutScript converts a script to an address
-* @param network:string
-* @param script: Uint8Array
-* @returns address as string
-*/
+ * getAddressFromOutScript converts a script to an address
+ * @param network:string
+ * @param script: Uint8Array
+ * @returns address as string
+ */
 function getAddressFromOutScript(network, script) {
     const net = (0, account_js_1.getNet)(network);
     const outputScript = btc.OutScript.decode(script);
-    if (outputScript.type === 'pk' || outputScript.type === 'tr') {
+    if (outputScript.type === "pk" || outputScript.type === "tr") {
         return btc.Address(net).encode({
             type: outputScript.type,
             pubkey: outputScript.pubkey,
         });
     }
-    if (outputScript.type === 'ms' || outputScript.type === 'tr_ms') {
+    if (outputScript.type === "ms" || outputScript.type === "tr_ms") {
         return btc.Address(net).encode({
             type: outputScript.type,
             pubkeys: outputScript.pubkeys,
             m: outputScript.m,
         });
     }
-    if (outputScript.type === 'tr_ns') {
+    if (outputScript.type === "tr_ns") {
         return btc.Address(net).encode({
             type: outputScript.type,
             pubkeys: outputScript.pubkeys,
         });
     }
-    if (outputScript.type === 'unknown') {
-        return btc.Address(net).encode({
-            type: outputScript.type,
-            script,
-        });
+    if (outputScript.type === "unknown") {
+        return `${outputScript.type}::${base_1.hex.encode(script)}`;
     }
     return btc.Address(net).encode({
         type: outputScript.type,
