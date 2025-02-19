@@ -1,4 +1,4 @@
-import { GovernanceData } from './dao';
+import { GovernanceData } from "./dao";
 export type SbtcUserSettingI = {
     executiveTeamMember: boolean;
     govTokens?: GovernanceData;
@@ -253,6 +253,7 @@ export type ExchangeRate = {
     sell: number;
     symbol: string;
     name: string;
+    stxToBtc: number;
 };
 export type AuthorisationDataType = {
     signature: string;

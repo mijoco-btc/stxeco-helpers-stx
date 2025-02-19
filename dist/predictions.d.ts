@@ -1,0 +1,34 @@
+export type ResolutionVote = {
+    marketId: number;
+    metadataHash: string;
+    proposer: string;
+    endBurnHeight: number;
+    isGated: boolean;
+    concluded: boolean;
+    votes: Array<number>;
+    numCategories: number;
+    winningCategory?: number;
+};
+export type PredictionContractData = {
+    marketCounter: number;
+    disputeWindowLength: number;
+    marketVotingDuration: number;
+    resolutionAgent: string;
+    devFeeBips: number;
+    daoFeeBips: number;
+    marketFeeBipsMax: number;
+    marketCreateFee: number;
+    devFund: string;
+    daoTreasury: string;
+    executiveSignalsRequired: number;
+    coreTeamSunsetHeight: number;
+    tokenName: string;
+    tokenSymbol: string;
+    tokenUri: string;
+    tokenDecimals: number;
+    customMajority: number;
+    creationGated: boolean;
+};
+export declare function fetchResolutionVote(stacksApi: string, marketId: number, contractAddress: string, contractName: string): Promise<ResolutionVote>;
+export declare function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string): Promise<any>;
+export declare function readPredictionContractData(stacksApi: string, contractAddress: string, contractName: string): Promise<PredictionContractData>;

@@ -30,7 +30,7 @@ export function uint8ToAmount(buf:Uint8Array):number {
     return amt;
 }
  */
-export declare function amountToBigUint64(amt: number, size: number): Uint8Array;
+export declare function amountToBigUint64(amt: number, size: number): Uint8Array<ArrayBufferLike>;
 export declare function bigUint64ToAmount(buf: Uint8Array): number;
 export declare function parseWithdrawPayload(network: string, d0: string, bitcoinAddress: string, sigMode: "rsv" | "vrs"): PayloadType;
 export declare enum PrincipalType {
@@ -107,15 +107,15 @@ export declare function fromStorable(script: any): any;
  */
 export declare function toStorable(script: any): {
     address: any;
-    script: string | Uint8Array | undefined;
+    script: string | Uint8Array<ArrayBufferLike> | undefined;
     paymentType: any;
-    witnessScript: string | Uint8Array | undefined;
-    redeemScript: string | Uint8Array | undefined;
+    witnessScript: string | Uint8Array<ArrayBufferLike> | undefined;
+    redeemScript: string | Uint8Array<ArrayBufferLike> | undefined;
     leaves: any;
-    tapInternalKey: string | Uint8Array | undefined;
+    tapInternalKey: string | Uint8Array<ArrayBufferLike> | undefined;
     tapLeafScript: any;
-    tapMerkleRoot: string | Uint8Array | undefined;
-    tweakedPubkey: string | Uint8Array | undefined;
+    tapMerkleRoot: string | Uint8Array<ArrayBufferLike> | undefined;
+    tweakedPubkey: string | Uint8Array<ArrayBufferLike> | undefined;
 };
 /**
  * getAddressFromOutScript converts a script to an address

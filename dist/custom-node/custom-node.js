@@ -19,16 +19,16 @@ function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
         return {
             stacks: {
                 address: stxAddress,
-                amount: Number(((_b = (_a = rawBal === null || rawBal === void 0 ? void 0 : rawBal.tokenBalances) === null || _a === void 0 ? void 0 : _a.stx) === null || _b === void 0 ? void 0 : _b.balance) || '0')
+                amount: Number(((_b = (_a = rawBal === null || rawBal === void 0 ? void 0 : rawBal.tokenBalances) === null || _a === void 0 ? void 0 : _a.stx) === null || _b === void 0 ? void 0 : _b.balance) || "0"),
             },
             cardinal: {
                 address: cardinal,
-                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.cardinalInfo)
+                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.cardinalInfo),
             },
             ordinal: {
                 address: ordinal,
-                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.ordinalInfo)
-            }
+                amount: extractBtcBalance(rawBal === null || rawBal === void 0 ? void 0 : rawBal.ordinalInfo),
+            },
         };
     });
 }
@@ -36,7 +36,8 @@ function extractBtcBalance(addressMempoolObject) {
     var _a;
     if (!addressMempoolObject)
         return 0;
-    return (((_a = addressMempoolObject === null || addressMempoolObject === void 0 ? void 0 : addressMempoolObject.chain_stats) === null || _a === void 0 ? void 0 : _a.funded_txo_sum) - addressMempoolObject.chain_stats.spent_txo_sum) || 0;
+    return (((_a = addressMempoolObject === null || addressMempoolObject === void 0 ? void 0 : addressMempoolObject.chain_stats) === null || _a === void 0 ? void 0 : _a.funded_txo_sum) -
+        addressMempoolObject.chain_stats.spent_txo_sum || 0);
 }
 function getBalanceAtHeight(stacksApi, stxAddress, height) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -45,16 +46,18 @@ function getBalanceAtHeight(stacksApi, stxAddress, height) {
                 stx: {
                     balance: 0,
                     locked: 0,
-                }
+                },
             };
-        const url = `${stacksApi}/extended/v1/address/${stxAddress}/balances?until_block=${height}`;
+        let url = `${stacksApi}/extended/v1/address/${stxAddress}/balances`;
+        if (height)
+            url += `?until_block=${height}`;
         let val;
         try {
             const response = yield fetch(url);
             val = yield response.json();
         }
         catch (err) {
-            console.log('getBalanceAtHeight: ', err);
+            console.log("getBalanceAtHeight: ", err);
         }
         return val;
     });

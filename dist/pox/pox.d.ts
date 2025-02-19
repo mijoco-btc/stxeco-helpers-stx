@@ -1,5 +1,5 @@
-import { Delegation, PoxCycleInfo, Stacker, StackerInfo } from '../pox_types';
-import { VerifySignerKey } from '../signer';
+import { Delegation, PoxCycleInfo, Stacker, StackerInfo } from "../pox_types";
+import { VerifySignerKey } from "../signer";
 export declare function getPoxContractFromCycle(cycle: number): "pox" | "pox-2" | "pox-3" | "pox-4";
 export declare function getPoxContractFromBurnHeight(height: number): "pox" | "pox-2" | "pox-3" | "pox-4";
 export declare function getPoxContractFromStacksHeight(height: number): "pox" | "pox-2" | "pox-3" | "pox-4";

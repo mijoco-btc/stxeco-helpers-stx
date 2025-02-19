@@ -6,8 +6,7 @@ import { hashMessage } from "@stacks/encryption";
 import { sha256 } from "@noble/hashes/sha256";
 import { ripemd160 } from "@noble/hashes/ripemd160";
 import {
-  StacksMessageType,
-  publicKeyFromSignatureRsv,
+  PubKeyEncoding,
   publicKeyFromSignatureVrs,
 } from "@stacks/transactions";
 import { PayloadType } from "../sbtc.js";
@@ -513,15 +512,13 @@ function getPubkeySignature(
 	const pubkey = hex.decode(pubkeyM.toHex());
 	//console.log(pubkeyM.toHex())
 	 */
-  let pubkey = publicKeyFromSignatureVrs(hex.encode(messageHash), {
-    data: signature,
-    type: StacksMessageType.MessageSignature,
-  });
+  let pubkey = publicKeyFromSignatureVrs(
+    hex.encode(messageHash),
+    signature,
+    PubKeyEncoding.Compressed
+  );
   if (sigMode === "rsv") {
-    pubkey = publicKeyFromSignatureRsv(hex.encode(messageHash), {
-      data: signature,
-      type: StacksMessageType.MessageSignature,
-    });
+    hex.encode(messageHash), signature, PubKeyEncoding.Uncompressed;
   }
   return hex.decode(pubkey);
 }

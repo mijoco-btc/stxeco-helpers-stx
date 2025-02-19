@@ -1,6 +1,17 @@
 import { ObjectId } from "mongodb";
 import { HeaderItem } from "./stxeco_types";
 import { PoxAddress } from "./pox_types";
+import { PredictionContractData } from "./predictions";
+import { ContractBalances } from "./stacks-node";
+import { TokenSale, TokenSalePurchase } from "./token_sale";
+import { StoredOpinionPoll } from "./markets";
+export type DaoOverview = {
+    contractData: PredictionContractData;
+    contractBalances: ContractBalances;
+    treasuryBalances: ContractBalances;
+    tokenSale?: TokenSale;
+    tokenSalePurchases?: Array<TokenSalePurchase>;
+};
 export type CurrentProposal = {
     _id?: string;
     configId?: number;
@@ -94,7 +105,40 @@ export type VotingEventProposeProposal = {
     proposalData: ProposalData;
     stackerData?: StackerProposalData;
     links?: Array<HeaderItem>;
+    sip18: boolean;
 };
+export type PollCreateEvent = {
+    _id: ObjectId;
+    event: string;
+    event_index: number;
+    daoContract: string;
+    votingContract: string;
+    txId: string;
+    concludeTxId: string;
+    isGated: boolean;
+    pollId: number;
+    marketId: number;
+    metadataHash: string;
+    endBurnHeight: number;
+    startBurnHeight: number;
+    proposer: string;
+    winningCategory: boolean;
+    unhashedData: StoredOpinionPoll;
+};
+export interface PollVoteEvent {
+    _id: ObjectId;
+    event: string;
+    event_index: number;
+    daoContract: string;
+    votingContract: string;
+    txId: string;
+    pollId: number;
+    voter: string;
+    for: number;
+    sip18: number;
+    amount: number;
+    reclaimId?: number;
+}
 export type StackerProposalData = {
     stacksAddressYes: string;
     stacksAddressNo: string;

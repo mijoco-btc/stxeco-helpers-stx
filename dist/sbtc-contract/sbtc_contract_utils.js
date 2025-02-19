@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -48,11 +58,11 @@ const btc = __importStar(require("@scure/btc-signer"));
 const stacks_node_1 = require("../stacks-node");
 const limit = 10;
 const noArgMethods = [
-    'get-bitcoin-wallet-public-key',
-    'get-token-uri',
-    'get-total-supply',
-    'get-decimals',
-    'get-name',
+    "get-bitcoin-wallet-public-key",
+    "get-token-uri",
+    "get-total-supply",
+    "get-decimals",
+    "get-name",
 ];
 function fetchNoArgsReadOnly(stacksApi, network, contractId) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -61,11 +71,11 @@ function fetchNoArgsReadOnly(stacksApi, network, contractId) {
             return {};
         //checkAddressForNetwork(getConfig().network, contractId)
         const data = {
-            contractAddress: contractId.split('.')[0],
-            contractName: contractId.split('.')[1],
-            functionName: '',
+            contractAddress: contractId.split(".")[0],
+            contractName: contractId.split(".")[1],
+            functionName: "",
             functionArgs: [],
-            network
+            network,
         };
         for (let arg in noArgMethods) {
             let funcname = noArgMethods[arg];
@@ -76,7 +86,7 @@ function fetchNoArgsReadOnly(stacksApi, network, contractId) {
                 resolveArg(network, result, response, funcname);
             }
             catch (err) {
-                console.log('Error fetching sbtc alpha data from sbtc contract arg: ' + funcname);
+                console.log("Error fetching sbtc alpha data from sbtc contract arg: " + funcname);
             }
         }
         result.contractId = contractId;
@@ -89,10 +99,10 @@ function resolveArg(network, result, response, arg) {
         current = response.value.value;
     }
     switch (arg) {
-        case 'get-bitcoin-wallet-public-key':
+        case "get-bitcoin-wallet-public-key":
             //console.log('get-bitcoin-wallet-public-key: response: ', response)
             try {
-                const fullPK = response.value.value.split('x')[1];
+                const fullPK = response.value.value.split("x")[1];
                 result.sbtcWalletAddress = getPegWalletAddressFromPublicKey(network, fullPK);
                 result.sbtcWalletPublicKey = fullPK;
                 // converting to x-only..
@@ -106,32 +116,32 @@ function resolveArg(network, result, response, arg) {
                 //}
             }
             catch (err) {
-                console.log('get-bitcoin-wallet-public-key: current: ', current);
-                console.log('get-bitcoin-wallet-public-key: err: ', err);
+                console.log("get-bitcoin-wallet-public-key: current: ", current);
+                console.log("get-bitcoin-wallet-public-key: err: ", err);
             }
             break;
-        case 'get-num-keys':
+        case "get-num-keys":
             result.numKeys = current.value;
             break;
-        case 'get-num-signers':
+        case "get-num-signers":
             result.numParties = current.value;
             break;
-        case 'get-threshold':
+        case "get-threshold":
             result.threshold = Number(current.value);
             break;
-        case 'get-trading-halted':
+        case "get-trading-halted":
             result.tradingHalted = current.value;
             break;
-        case 'get-token-uri':
+        case "get-token-uri":
             result.tokenUri = current.value;
             break;
-        case 'get-total-supply':
+        case "get-total-supply":
             result.totalSupply = Number(current);
             break;
-        case 'get-decimals':
+        case "get-decimals":
             result.decimals = Number(current);
             break;
-        case 'get-name':
+        case "get-name":
             result.name = current;
             break;
         default:
@@ -144,24 +154,24 @@ function fetchSbtcWalletAddress(stacksApi, network, contractId) {
             if (!contractId || contractId.length === 0)
                 return;
             const data = {
-                contractAddress: contractId.split('.')[0],
-                contractName: contractId.split('.')[1],
-                functionName: 'get-bitcoin-wallet-public-key',
+                contractAddress: contractId.split(".")[0],
+                contractName: contractId.split(".")[1],
+                functionName: "get-bitcoin-wallet-public-key",
                 functionArgs: [],
-                network
+                network,
             };
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             if (result.value && result.value.value) {
                 return result.value.value;
             }
-            if (result.type.indexOf('some') > -1)
+            if (result.type.indexOf("some") > -1)
                 return result.value;
-            if (network === 'testnet') {
-                return 'tb1q....'; // alice
+            if (network === "testnet") {
+                return "tb1q...."; // alice
             }
         }
         catch (err) {
-            return 'tb1qa....';
+            return "tb1qa....";
         }
     });
 }
@@ -170,13 +180,13 @@ function fetchUserSbtcBalance(stacksApi, network, contractId, stxAddress) {
         try {
             if (!contractId || contractId.length === 0)
                 return { balance: 0 };
-            const functionArgs = [`0x${base_1.hex.encode((0, transactions_1.serializeCV)((0, transactions_1.principalCV)(stxAddress)))}`];
+            const functionArgs = [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(stxAddress))}`];
             const data = {
-                contractAddress: contractId.split('.')[0],
-                contractName: contractId.split('.')[1],
-                functionName: 'get-balance',
+                contractAddress: contractId.split(".")[0],
+                contractName: contractId.split(".")[1],
+                functionName: "get-balance",
                 functionArgs,
-                network
+                network,
             };
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             if (result.value && result.value.value) {
@@ -218,7 +228,7 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
         }
         catch (err) {
             userBalances.bnsNameInfo = { names: [] };
-            console.log('fetchUserBalances: sBtcBalance: ' + err.message);
+            console.log("fetchUserBalances: sBtcBalance: " + err.message);
         }
         try {
             //checkAddressForNetwork(getConfig().network, userBalances.cardinal)
@@ -226,7 +236,7 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
             userBalances.cardinalInfo = address;
         }
         catch (err) {
-            console.log('fetchUserBalances: cardinalInfo: ' + err.message);
+            console.log("fetchUserBalances: cardinalInfo: " + err.message);
         }
         try {
             //checkAddressForNetwork(getConfig().network, userBalances.cardinal)
@@ -234,7 +244,7 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
             userBalances.ordinalInfo = address;
         }
         catch (err) {
-            console.log('fetchUserBalances: ordinalInfo: ' + err.message);
+            console.log("fetchUserBalances: ordinalInfo: " + err.message);
         }
         return userBalances;
     });

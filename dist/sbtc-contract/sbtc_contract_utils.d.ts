@@ -1,4 +1,4 @@
-import { AddressMempoolObject, AddressObject, BalanceI, SbtcContractDataType } from '../sbtc';
+import { AddressMempoolObject, AddressObject, BalanceI, SbtcContractDataType } from "../sbtc";
 export declare function fetchNoArgsReadOnly(stacksApi: string, network: string, contractId: string): Promise<SbtcContractDataType>;
 export declare function fetchSbtcWalletAddress(stacksApi: string, network: string, contractId: string): Promise<any>;
 export declare function fetchUserSbtcBalance(stacksApi: string, network: string, contractId: string, stxAddress: string): Promise<BalanceI>;
