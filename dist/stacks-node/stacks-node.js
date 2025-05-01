@@ -86,10 +86,7 @@ function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
             return result;
         }
         catch (err) {
-            console.log("fetchDataVar: " +
-                err.message +
-                " contractAddress: " +
-                contractAddress);
+            console.log("fetchDataVar: dataVarName: " + dataVarName + " : " + err.message + " contractName: " + contractName);
         }
     });
 }
@@ -107,10 +104,7 @@ function fetchMapEntry(stacksApi, contractAddress, contractName, mapName, lookup
             return result;
         }
         catch (err) {
-            console.log("fetchDataVar: " +
-                err.message +
-                " contractAddress: " +
-                contractAddress);
+            console.log("fetchMapEntry: mapName: " + mapName + " : " + " lookupKey: " + lookupKey + " : " + err.message + " contractAddress: " + contractAddress);
         }
     });
 }

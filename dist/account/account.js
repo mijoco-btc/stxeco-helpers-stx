@@ -64,6 +64,8 @@ exports.verifyAmount = verifyAmount;
 exports.verifySBTCAmount = verifySBTCAmount;
 exports.initAddresses = initAddresses;
 exports.initApplication = initApplication;
+exports.defaultSettings = defaultSettings;
+exports.defaultExchangeRate = defaultExchangeRate;
 const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
@@ -158,16 +160,12 @@ function isLeather() {
 function appDetails() {
     return {
         name: "stxeco-launcher",
-        icon: window
-            ? window.location.origin + "/img/stx_eco_logo_icon_white.png"
-            : "/img/stx_eco_logo_icon_white.png",
+        icon: window ? window.location.origin + "/img/stx_eco_logo_icon_white.png" : "/img/stx_eco_logo_icon_white.png",
     };
 }
 function getStacksAddress(network, userData) {
     if (userData) {
-        const stxAddress = network === "testnet" || network === "devnet"
-            ? userData.profile.stxAddress.testnet
-            : userData.profile.stxAddress.mainnet;
+        const stxAddress = network === "testnet" || network === "devnet" ? userData.profile.stxAddress.testnet : userData.profile.stxAddress.mainnet;
         return stxAddress;
     }
     return;
@@ -234,9 +232,7 @@ function verifyStacksPricipal(network, stacksAddress) {
         return stacksAddress;
     }
     catch (err) {
-        throw new Error("Invalid stacks principal - please enter a valid " +
-            network +
-            " account or contract principal.");
+        throw new Error("Invalid stacks principal - please enter a valid " + network + " account or contract principal.");
     }
 }
 function getNet(network) {
@@ -293,8 +289,8 @@ function addresses(network, userData, callback) {
             else {
                 try {
                     if (userData) {
-                        ordinal = userData.profile.btcAddress.p2tr.testnet;
-                        cardinal = userData.profile.btcAddress.p2wpkh.testnet;
+                        ordinal = userData.profile.btcAddress.p2tr.regtest;
+                        cardinal = userData.profile.btcAddress.p2wpkh.regtest;
                         if (network === "mainnet") {
                             ordinal = userData.profile.btcAddress.p2tr.mainnet;
                             cardinal = userData.profile.btcAddress.p2wpkh.mainnet;
@@ -367,10 +363,7 @@ function makeFlash(el1) {
 function isLegal(routeId) {
     try {
         if (routeId.startsWith("http")) {
-            if (routeId.indexOf("/deposit") > -1 ||
-                routeId.indexOf("/withdraw") > -1 ||
-                routeId.indexOf("/admin") > -1 ||
-                routeId.indexOf("/transactions") > -1) {
+            if (routeId.indexOf("/deposit") > -1 || routeId.indexOf("/withdraw") > -1 || routeId.indexOf("/admin") > -1 || routeId.indexOf("/transactions") > -1) {
                 return false;
             }
         }
@@ -404,12 +397,14 @@ function verifySBTCAmount(amount, balance, fee) {
 }
 function initAddresses(sessionStore) {
     sessionStore.update((conf) => {
-        if (!conf.keySets || !conf.keySets["devnet"])
-            conf.keySets = { devnet: {} };
-        if (!conf.keySets || !conf.keySets["testnet"])
-            conf.keySets = { testnet: {} };
-        if (!conf.keySets || !conf.keySets["mainnet"])
-            conf.keySets = { mainnet: {} };
+        if (!conf.keySets)
+            conf.keySets = { devnet: {}, testnet: {}, mainnet: {} };
+        if (!conf.keySets["devnet"])
+            conf.keySets["devnet"] = {};
+        if (!conf.keySets["testnet"])
+            conf.keySets["testnet"] = {};
+        if (!conf.keySets["mainnet"])
+            conf.keySets["mainnet"] = {};
         conf.stacksInfo = {};
         conf.poxInfo = {};
         conf.loggedIn = false;
@@ -424,8 +419,7 @@ function initApplication(stacksApi, mempoolApi, network, sessionStore, exchangeR
             const stacksInfo = (yield (0, stacks_node_1.fetchStacksInfo)(stacksApi)) || {};
             const poxInfo = yield (0, stacks_node_1.getPoxInfo)(stacksApi);
             const settings = sessionStore.userSettings || defaultSettings();
-            const rateNow = (exchangeRates === null || exchangeRates === void 0 ? void 0 : exchangeRates.find((o) => o.currency === "USD")) ||
-                { currency: "USD" };
+            const rateNow = (exchangeRates === null || exchangeRates === void 0 ? void 0 : exchangeRates.find((o) => o.currency === "USD")) || { currency: "USD" };
             settings.currency = {
                 myFiatCurrency: rateNow || defaultExchangeRate(),
                 cryptoFirst: true,
@@ -445,8 +439,7 @@ function initApplication(stacksApi, mempoolApi, network, sessionStore, exchangeR
                         var _a, _b;
                         console.log("in callback");
                         obj.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(stacksApi, obj.stxAddress);
-                        obj.sBTCBalance = Number(((_b = (_a = obj.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[ftContract + "::sbtc"]) === null || _b === void 0 ? void 0 : _b.balance) ||
-                            0);
+                        obj.sBTCBalance = Number(((_b = (_a = obj.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[ftContract + "::sbtc"]) === null || _b === void 0 ? void 0 : _b.balance) || 0);
                         obj.walletBalances = yield (0, custom_node_1.getWalletBalances)(stacksApi, mempoolApi, obj.stxAddress, obj.cardinal, obj.ordinal);
                         sessionStore.update((conf) => {
                             conf.loggedIn = false;
@@ -488,5 +481,7 @@ function defaultExchangeRate() {
         symbol: "USD",
         name: "BTCUSD",
         stxToBtc: 0.00000983,
+        ethToBtc: 0,
+        solToBtc: 0,
     };
 }

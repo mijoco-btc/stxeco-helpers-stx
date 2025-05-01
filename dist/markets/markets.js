@@ -12,12 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResolutionState = exports.MARKET_BINARY_OPTION = void 0;
 exports.fetchMarketData = fetchMarketData;
 exports.fetchUserStake = fetchUserStake;
-exports.opinionPollToTupleCV = opinionPollToTupleCV;
+exports.marketDataToTupleCV = marketDataToTupleCV;
+exports.createBasicEvent = createBasicEvent;
 const transactions_1 = require("@stacks/transactions");
 const stacks_node_1 = require("../stacks-node");
 function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c;
+        let sbtcContract = stacksApi.indexOf("localhost") > -1 ? "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc" : "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token";
         const data = {
             contractAddress,
             contractName,
@@ -38,29 +40,17 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
                 }));
             }
             const stakes = result.value.value["stakes"].value.map((item) => Number(item.value));
-            let resolutionBurnHeight = type2
-                ? undefined
-                : Number(result.value.value["resolution-burn-height"].value);
-            let marketStart = type2
-                ? Number(result.value.value["market-start"].value)
-                : undefined;
-            let marketDuration = type2
-                ? Number(result.value.value["market-duration"].value)
-                : undefined;
-            let coolDownPeriod = type2
-                ? Number(result.value.value["cool-down-period"].value)
-                : undefined;
-            let priceFeedId = type2
-                ? result.value.value["price-feed-id"].value
-                : undefined;
+            let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
+            let marketStart = type2 ? Number(result.value.value["market-start"].value) : undefined;
+            let marketDuration = type2 ? Number(result.value.value["market-duration"].value) : undefined;
+            let coolDownPeriod = type2 ? Number(result.value.value["cool-down-period"].value) : undefined;
+            let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
             return {
                 concluded: Boolean(result.value.value.concluded.value),
                 creator: result.value.value.creator.value,
-                token: result.value.value.token.value,
+                token: ((_a = result.value.value.token) === null || _a === void 0 ? void 0 : _a.value) || sbtcContract,
                 treasury: result.value.value.treasury.value,
-                outcome: ((_b = (_a = result.value.value.outcome) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.value)
-                    ? Number(result.value.value.outcome.value.value)
-                    : undefined,
+                outcome: ((_c = (_b = result.value.value.outcome) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.value) ? Number(result.value.value.outcome.value.value) : undefined,
                 marketFeeBips: Number(result.value.value["market-fee-bips"].value),
                 metadataHash: result.value.value["market-data-hash"].value,
                 stakes,
@@ -86,10 +76,7 @@ function fetchUserStake(stacksApi, marketId, contractAddress, contractName, user
                 contractAddress,
                 contractName,
                 functionName: "get-stake-balances",
-                functionArgs: [
-                    `0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`,
-                    `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`,
-                ],
+                functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`],
             };
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
             const stakes = ((_a = result.value) === null || _a === void 0 ? void 0 : _a.value.map((item) => Number(item.value))) || undefined;
@@ -106,10 +93,10 @@ function fetchUserStake(stacksApi, marketId, contractAddress, contractName, user
 }
 // ✅ / ❌ 🟢 / 🔴 👍 / 👎 ⭕ / ❌ 🤝 Agree / 🚫 Disagree 🆗 Agree / 🛑 Disagree 📈 For / 📉 Against 1️⃣ Yes / 0️⃣ No
 exports.MARKET_BINARY_OPTION = [
-    { label: "nay", displayName: "against", icon: "👎" },
-    { label: "yay", displayName: "for", icon: "👍" },
+    { label: "AGAINST", displayName: "against", icon: "👎" },
+    { label: "FOR", displayName: "for", icon: "👍" },
 ];
-function opinionPollToTupleCV(name, category, createdAt, proposer, token) {
+function marketDataToTupleCV(name, category, createdAt, proposer, token) {
     return (0, transactions_1.tupleCV)({
         name: (0, transactions_1.stringAsciiCV)(name),
         category: (0, transactions_1.stringAsciiCV)(category),
@@ -125,3 +112,13 @@ var ResolutionState;
     ResolutionState[ResolutionState["RESOLUTION_DISPUTED"] = 2] = "RESOLUTION_DISPUTED";
     ResolutionState[ResolutionState["RESOLUTION_RESOLVED"] = 3] = "RESOLUTION_RESOLVED";
 })(ResolutionState || (exports.ResolutionState = ResolutionState = {}));
+function createBasicEvent(id, event, daoContract, extension, eventType) {
+    return {
+        _id: id,
+        event: eventType,
+        event_index: Number(event.event_index),
+        txId: event.tx_id,
+        daoContract,
+        extension,
+    };
+}

@@ -14,20 +14,20 @@ exports.extractValue = extractValue;
 exports.readPredictionContractData = readPredictionContractData;
 const transactions_1 = require("@stacks/transactions");
 const stacks_node_1 = require("./stacks-node");
-function fetchResolutionVote(stacksApi, marketId, contractAddress, contractName) {
+function fetchResolutionVote(stacksApi, marketContract, marketId, contractAddress, contractName) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const data = {
             contractAddress,
             contractName,
             functionName: "get-poll-data",
-            functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`],
+            functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(marketContract))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`],
         };
         const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
         const votes = result.value.value["votes"].value.map((item) => Number(item.value));
         return {
-            marketId: marketId,
-            metadataHash: result.value.value["market-data-hash"].value,
+            marketContract,
+            marketId,
             proposer: result.value.value.proposer.value,
             endBurnHeight: Number(result.value.value["end-burn-height"].value),
             isGated: false,

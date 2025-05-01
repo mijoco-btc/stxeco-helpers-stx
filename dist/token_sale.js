@@ -24,14 +24,23 @@ function fetchTokenSaleStages(stacksApi, contractAddress, contractName) {
         };
         const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
         const stages = result.value.map((stage) => {
-            if (stage.value) {
+            var _a, _b, _c, _d;
+            if (stage === null || stage === void 0 ? void 0 : stage.value) {
+                const val = stage.value.value;
                 return {
-                    cancelled: stage.value.value.cancelled.value || false,
-                    maxSupply: Number(stage.value.value["max-supply"].value) || 0,
-                    price: Number(stage.value.value.price.value) || 0,
-                    tokensSold: Number(stage.value.value["tokens-sold"].value) || 0,
+                    cancelled: ((_a = val.cancelled) === null || _a === void 0 ? void 0 : _a.value) || false,
+                    maxSupply: Number((_b = val["max-supply"]) === null || _b === void 0 ? void 0 : _b.value) || 0,
+                    price: Number((_c = val.price) === null || _c === void 0 ? void 0 : _c.value) || 0,
+                    tokensSold: Number((_d = val["tokens-sold"]) === null || _d === void 0 ? void 0 : _d.value) || 0,
                 };
             }
+            // fallback if stage.value is missing
+            return {
+                cancelled: false,
+                maxSupply: 0,
+                price: 0,
+                tokensSold: 0,
+            };
         });
         let currentStageStart = yield (0, predictions_1.extractValue)(stacksApi, contractAddress, contractName, "current-stage-start");
         let currentStage = yield (0, predictions_1.extractValue)(stacksApi, contractAddress, contractName, "current-stage");
@@ -45,9 +54,7 @@ function fetchTokenSaleStages(stacksApi, contractAddress, contractName) {
 function fetchTokenSaleUserData(stacksApi, contractAddress, contractName, user, stage) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        const functionArgs = stage
-            ? [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(1))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`]
-            : [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`];
+        const functionArgs = stage ? [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(1))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`] : [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`];
         const data = {
             contractAddress,
             contractName,

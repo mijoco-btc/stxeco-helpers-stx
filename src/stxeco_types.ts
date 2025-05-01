@@ -1,16 +1,7 @@
-import {
-  CurrentProposal,
-  ExtensionType,
-  InFlight,
-  ProposalEvent,
-  SoloPoolData,
-  TentativeProposal,
-} from "./dao";
+import { CurrentProposal, DaoOverview, ExtensionType, InFlight, SoloPoolData } from "./dao";
 import { PoxInfo, StacksInfo } from "./pox_types";
-import { PredictionContractData } from "./predictions";
 import { AddressObject, ExchangeRate, SbtcUserSettingI } from "./sbtc";
 import { StacksBalance } from "./stacker";
-import { ContractBalances } from "./stacks-node";
 
 export type SessionStore = {
   name: string;
@@ -21,20 +12,14 @@ export type SessionStore = {
   poxInfo: PoxInfo;
   exchangeRates: Array<ExchangeRate>;
   stacksInfo: StacksInfo;
-  daoOverview: {
-    contractData: PredictionContractData;
-    contractBalances: ContractBalances;
-  };
+  daoOverview: DaoOverview;
 };
 
 export type DaoStore = {
-  activeProposals: Array<ProposalEvent>;
-  inactiveProposals: Array<ProposalEvent>;
   extensions?: Array<ExtensionType>;
   soloPoolData: SoloPoolData;
   daoData?: InFlight;
   currentProposal?: CurrentProposal;
-  tentativeProposals: Array<TentativeProposal>;
 };
 
 export type HeaderItem = {

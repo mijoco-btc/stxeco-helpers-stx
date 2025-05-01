@@ -14,28 +14,13 @@ function getProvider() {
   return prod;
 }
 
-export async function getBalances(
-  stacksApi: string,
-  mempoolApi: string,
-  contractId: string,
-  stxAddress: string,
-  cardinal: string,
-  ordinal: string
-): Promise<AddressObject> {
+export async function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject> {
   let result = {} as AddressObject;
   try {
     result.tokenBalances = await getTokenBalances(stacksApi, stxAddress);
-    result.walletBalances = await getWalletBalances(
-      stacksApi,
-      mempoolApi,
-      stxAddress,
-      cardinal,
-      ordinal
-    );
+    result.walletBalances = await getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
     try {
-      result.sBTCBalance = Number(
-        result.tokenBalances?.fungible_tokens[contractId + "::sbtc"].balance
-      );
+      result.sBTCBalance = Number(result.tokenBalances?.fungible_tokens[contractId + "::sbtc"].balance);
     } catch (err) {
       result.sBTCBalance = 0;
     }
@@ -49,11 +34,7 @@ export function isSTX(token: string) {
   return token.indexOf("stx") > -1;
 }
 
-export async function fullBalanceAtHeight(
-  stacksApi: string,
-  stxAddress: string,
-  height?: number
-): Promise<number> {
+export async function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number): Promise<number> {
   let totalBalanceAtHeight = 0;
   try {
     const response = await getBalanceAtHeight(stacksApi, stxAddress);
@@ -65,18 +46,12 @@ export async function fullBalanceAtHeight(
   return totalBalanceAtHeight;
 }
 
-export async function fullBalanceInSip10Token(
-  stacksApi: string,
-  stxAddress: string,
-  tokenContract: string
-): Promise<number> {
+export async function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string): Promise<number> {
   let totalBalanceAtHeight = 0;
   try {
     if (isSTX(tokenContract)) return fullBalanceAtHeight(stacksApi, stxAddress);
     const response = await getTokenBalances(stacksApi, stxAddress);
-    const tokenEntry = Object.entries(response.fungible_tokens).find(([key]) =>
-      key.startsWith(tokenContract)
-    );
+    const tokenEntry = Object.entries(response.fungible_tokens).find(([key]) => key.startsWith(tokenContract));
     if (tokenEntry) {
       const [tokenKey, tokenData] = tokenEntry;
       const assetName = tokenKey.split("::")[1]; // Extract the asset name
@@ -115,55 +90,33 @@ export function isLeather() {
 export function appDetails() {
   return {
     name: "stxeco-launcher",
-    icon: window
-      ? window.location.origin + "/img/stx_eco_logo_icon_white.png"
-      : "/img/stx_eco_logo_icon_white.png",
+    icon: window ? window.location.origin + "/img/stx_eco_logo_icon_white.png" : "/img/stx_eco_logo_icon_white.png",
   };
 }
 
 export function getStacksAddress(network: string, userData: UserData) {
   if (userData) {
-    const stxAddress =
-      network === "testnet" || network === "devnet"
-        ? userData.profile.stxAddress.testnet
-        : userData.profile.stxAddress.mainnet;
+    const stxAddress = network === "testnet" || network === "devnet" ? userData.profile.stxAddress.testnet : userData.profile.stxAddress.mainnet;
     return stxAddress;
   }
   return;
 }
 
-export function checkAddressForNetwork(
-  net: string,
-  address: string | undefined
-) {
-  if (!address || typeof address !== "string")
-    throw new Error("No address passed");
+export function checkAddressForNetwork(net: string, address: string | undefined) {
+  if (!address || typeof address !== "string") throw new Error("No address passed");
   if (address.length < 10) throw new Error("Address is undefined");
   if (net === "devnet") return;
   else if (net === "testnet") {
-    if (address.startsWith("bc"))
-      throw new Error("Mainnet address passed to testnet app: " + address);
-    else if (address.startsWith("3"))
-      throw new Error("Mainnet address passed to testnet app: " + address);
-    else if (address.startsWith("1"))
-      throw new Error("Mainnet address passed to testnet app: " + address);
-    else if (address.startsWith("SP") || address.startsWith("sp"))
-      throw new Error(
-        "Mainnet stacks address passed to testnet app: " + address
-      );
+    if (address.startsWith("bc")) throw new Error("Mainnet address passed to testnet app: " + address);
+    else if (address.startsWith("3")) throw new Error("Mainnet address passed to testnet app: " + address);
+    else if (address.startsWith("1")) throw new Error("Mainnet address passed to testnet app: " + address);
+    else if (address.startsWith("SP") || address.startsWith("sp")) throw new Error("Mainnet stacks address passed to testnet app: " + address);
   } else {
-    if (address.startsWith("tb"))
-      throw new Error("Testnet address passed to testnet app: " + address);
-    else if (address.startsWith("2"))
-      throw new Error("Testnet address passed to testnet app: " + address);
-    else if (address.startsWith("m"))
-      throw new Error("Testnet address passed to testnet app: " + address);
-    else if (address.startsWith("n"))
-      throw new Error("Testnet address passed to testnet app: " + address);
-    else if (address.startsWith("ST") || address.startsWith("st"))
-      throw new Error(
-        "Testnet stacks address passed to testnet app: " + address
-      );
+    if (address.startsWith("tb")) throw new Error("Testnet address passed to testnet app: " + address);
+    else if (address.startsWith("2")) throw new Error("Testnet address passed to testnet app: " + address);
+    else if (address.startsWith("m")) throw new Error("Testnet address passed to testnet app: " + address);
+    else if (address.startsWith("n")) throw new Error("Testnet address passed to testnet app: " + address);
+    else if (address.startsWith("ST") || address.startsWith("st")) throw new Error("Testnet stacks address passed to testnet app: " + address);
   }
 }
 
@@ -198,11 +151,7 @@ export function verifyStacksPricipal(network: string, stacksAddress?: string) {
     }
     return stacksAddress;
   } catch (err: any) {
-    throw new Error(
-      "Invalid stacks principal - please enter a valid " +
-        network +
-        " account or contract principal."
-    );
+    throw new Error("Invalid stacks principal - please enter a valid " + network + " account or contract principal.");
   }
 }
 
@@ -219,11 +168,7 @@ export const REGTEST_NETWORK: typeof btc.NETWORK = {
   wif: 0xc4,
 };
 
-async function addresses(
-  network: string,
-  userData: UserData | undefined,
-  callback: any
-): Promise<AddressObject | undefined> {
+async function addresses(network: string, userData: UserData | undefined, callback: any): Promise<AddressObject | undefined> {
   if (!userData) return {} as AddressObject;
   //let something = hashP2WPKH(payload.public_keys[0])
   const stxAddress = userData ? getStacksAddress(network, userData) : undefined;
@@ -260,8 +205,8 @@ async function addresses(
     } else {
       try {
         if (userData) {
-          ordinal = userData.profile.btcAddress.p2tr.testnet;
-          cardinal = userData.profile.btcAddress.p2wpkh.testnet;
+          ordinal = userData.profile.btcAddress.p2tr.regtest;
+          cardinal = userData.profile.btcAddress.p2wpkh.regtest;
           if (network === "mainnet") {
             ordinal = userData.profile.btcAddress.p2tr.mainnet;
             cardinal = userData.profile.btcAddress.p2wpkh.mainnet;
@@ -329,17 +274,10 @@ export function makeFlash(el1: HTMLElement | null) {
 export function isLegal(routeId: string): boolean {
   try {
     if (routeId.startsWith("http")) {
-      if (
-        routeId.indexOf("/deposit") > -1 ||
-        routeId.indexOf("/withdraw") > -1 ||
-        routeId.indexOf("/admin") > -1 ||
-        routeId.indexOf("/transactions") > -1
-      ) {
+      if (routeId.indexOf("/deposit") > -1 || routeId.indexOf("/withdraw") > -1 || routeId.indexOf("/admin") > -1 || routeId.indexOf("/transactions") > -1) {
         return false;
       }
-    } else if (
-      ["/deposit", "/withdraw", "/admin", "/transactions"].includes(routeId)
-    ) {
+    } else if (["/deposit", "/withdraw", "/admin", "/transactions"].includes(routeId)) {
       return false;
     }
     return true;
@@ -370,12 +308,10 @@ export function verifySBTCAmount(amount: number, balance: number, fee: number) {
 
 export function initAddresses(sessionStore: any) {
   sessionStore.update((conf: SessionStore) => {
-    if (!conf.keySets || !conf.keySets["devnet"])
-      conf.keySets = { devnet: {} as AddressObject };
-    if (!conf.keySets || !conf.keySets["testnet"])
-      conf.keySets = { testnet: {} as AddressObject };
-    if (!conf.keySets || !conf.keySets["mainnet"])
-      conf.keySets = { mainnet: {} as AddressObject };
+    if (!conf.keySets) conf.keySets = { devnet: {} as AddressObject, testnet: {} as AddressObject, mainnet: {} as AddressObject };
+    if (!conf.keySets["devnet"]) conf.keySets["devnet"] = {} as AddressObject;
+    if (!conf.keySets["testnet"]) conf.keySets["testnet"] = {} as AddressObject;
+    if (!conf.keySets["mainnet"]) conf.keySets["mainnet"] = {} as AddressObject;
     conf.stacksInfo = {} as StacksInfo;
     conf.poxInfo = {} as PoxInfo;
     conf.loggedIn = false;
@@ -385,22 +321,12 @@ export function initAddresses(sessionStore: any) {
   });
 }
 
-export async function initApplication(
-  stacksApi: string,
-  mempoolApi: string,
-  network: string,
-  sessionStore: any,
-  exchangeRates: Array<ExchangeRate>,
-  ftContract: string,
-  userData: UserData | undefined
-) {
+export async function initApplication(stacksApi: string, mempoolApi: string, network: string, sessionStore: any, exchangeRates: Array<ExchangeRate>, ftContract: string, userData: UserData | undefined) {
   try {
     const stacksInfo = (await fetchStacksInfo(stacksApi)) || ({} as StacksInfo);
     const poxInfo = await getPoxInfo(stacksApi);
     const settings = sessionStore.userSettings || defaultSettings();
-    const rateNow =
-      exchangeRates?.find((o: any) => o.currency === "USD") ||
-      ({ currency: "USD" } as ExchangeRate);
+    const rateNow = exchangeRates?.find((o: any) => o.currency === "USD") || ({ currency: "USD" } as ExchangeRate);
 
     settings.currency = {
       myFiatCurrency: rateNow || defaultExchangeRate(),
@@ -421,17 +347,8 @@ export async function initApplication(
         console.log("in callback");
 
         obj.tokenBalances = await getTokenBalances(stacksApi, obj.stxAddress);
-        obj.sBTCBalance = Number(
-          obj.tokenBalances?.fungible_tokens[ftContract + "::sbtc"]?.balance ||
-            0
-        );
-        obj.walletBalances = await getWalletBalances(
-          stacksApi,
-          mempoolApi,
-          obj.stxAddress,
-          obj.cardinal,
-          obj.ordinal
-        );
+        obj.sBTCBalance = Number(obj.tokenBalances?.fungible_tokens[ftContract + "::sbtc"]?.balance || 0);
+        obj.walletBalances = await getWalletBalances(stacksApi, mempoolApi, obj.stxAddress, obj.cardinal, obj.ordinal);
 
         sessionStore.update((conf: SessionStore) => {
           conf.loggedIn = false;
@@ -447,7 +364,7 @@ export async function initApplication(
   }
 }
 
-function defaultSettings(): SbtcUserSettingI {
+export function defaultSettings(): SbtcUserSettingI {
   return {
     debugMode: false,
     useOpDrop: false,
@@ -461,7 +378,7 @@ function defaultSettings(): SbtcUserSettingI {
   };
 }
 
-function defaultExchangeRate(): ExchangeRate {
+export function defaultExchangeRate(): ExchangeRate {
   return {
     _id: "",
     currency: "USD",
@@ -472,5 +389,7 @@ function defaultExchangeRate(): ExchangeRate {
     symbol: "USD",
     name: "BTCUSD",
     stxToBtc: 0.00000983,
+    ethToBtc: 0,
+    solToBtc: 0,
   };
 }

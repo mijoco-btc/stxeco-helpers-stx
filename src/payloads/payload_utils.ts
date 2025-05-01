@@ -5,17 +5,9 @@ import { concatBytes } from "@stacks/common";
 import { hashMessage } from "@stacks/encryption";
 import { sha256 } from "@noble/hashes/sha256";
 import { ripemd160 } from "@noble/hashes/ripemd160";
-import {
-  PubKeyEncoding,
-  publicKeyFromSignatureVrs,
-} from "@stacks/transactions";
+import { PubKeyEncoding, publicKeyFromSignatureVrs } from "@stacks/transactions";
 import { PayloadType } from "../sbtc.js";
-import {
-  CommitmentStatus,
-  RevealerTransaction,
-  RevealerTxModes,
-  RevealerTxTypes,
-} from "../revealer_types.js";
+import { CommitmentStatus, RevealerTransaction, RevealerTxModes, RevealerTxTypes } from "../revealer_types.js";
 import { getNet } from "../account/account.js";
 import * as P from "micro-packed";
 
@@ -42,12 +34,8 @@ export function bitcoinToSats(amountBtc: number) {
   return Math.round(amountBtc * btcPrecision);
 }
 
-export function convertToRevealerTransaction(
-  payload: PayloadType,
-  tx: any
-): RevealerTransaction {
-  if (!payload.stacksAddress)
-    throw new Error("payload.stacksAddress is required");
+export function convertToRevealerTransaction(payload: PayloadType, tx: any): RevealerTransaction {
+  if (!payload.stacksAddress) throw new Error("payload.stacksAddress is required");
   const revealerTx: RevealerTransaction = {
     txId: tx.txid,
     originator: payload.stacksAddress,
@@ -55,16 +43,10 @@ export function convertToRevealerTransaction(
     paymentAddress: tx.vin[0].prevout.scriptpubkey_address,
     paymentPublicKey: tx.vin[0].prevout.scriptpubkey_type,
     mode: RevealerTxModes.OP_RETURN,
-    type:
-      payload.opcode === "3C"
-        ? RevealerTxTypes.SBTC_DEPOSIT
-        : RevealerTxTypes.SBTC_WITHDRAWAL,
+    type: payload.opcode === "3C" ? RevealerTxTypes.SBTC_DEPOSIT : RevealerTxTypes.SBTC_WITHDRAWAL,
     created: new Date().getTime(),
     updated: new Date().getTime(),
-    recipient:
-      payload.opcode === "3C"
-        ? payload.stacksAddress
-        : tx.vout[1].scriptpubkey_address,
+    recipient: payload.opcode === "3C" ? payload.stacksAddress : tx.vout[1].scriptpubkey_address,
     signed: true,
     confirmations: tx.status.block_height,
     blockHeight: tx.status.block_height,
@@ -74,12 +56,7 @@ export function convertToRevealerTransaction(
   return revealerTx;
 }
 
-export function parseRawPayload(
-  network: string,
-  d0: string,
-  vout1Address: string | undefined,
-  sigMode: "rsv" | "vrs"
-): PayloadType {
+export function parseRawPayload(network: string, d0: string, vout1Address: string | undefined, sigMode: "rsv" | "vrs"): PayloadType {
   let d1 = hex.decode(d0).subarray(4);
   let magicOp = getMagicAndOpCode(d1);
   if (magicOp.opcode !== "3C" && magicOp.opcode !== "3E") {
@@ -91,17 +68,8 @@ export function parseRawPayload(
     return payload;
   } else if (magicOp.opcode === "3E") {
     try {
-      if (vout1Address)
-        return parseWithdrawPayload(
-          network,
-          hex.encode(d1),
-          vout1Address,
-          sigMode
-        );
-      else
-        throw new Error(
-          "Withdrawal requires the address from output 1: " + magicOp.opcode
-        );
+      if (vout1Address) return parseWithdrawPayload(network, hex.encode(d1), vout1Address, sigMode);
+      else throw new Error("Withdrawal requires the address from output 1: " + magicOp.opcode);
     } catch (err: any) {
       return {
         opcode: "3E",
@@ -149,14 +117,10 @@ function parseDepositPayloadNoPrincipal(d1: Uint8Array): PayloadType {
 function parseDepositPayloadNoMagic(d1: Uint8Array): PayloadType {
   //console.log('payload rev: ', hex.encode(d1))
   const opcode = hex.encode(d1.subarray(0, 1)).toUpperCase();
-  if (opcode.toUpperCase() !== PEGIN_OPCODE)
-    throw new Error(
-      "Wrong OPCODE : expected: " + PEGIN_OPCODE + "  received: " + opcode
-    );
+  if (opcode.toUpperCase() !== PEGIN_OPCODE) throw new Error("Wrong OPCODE : expected: " + PEGIN_OPCODE + "  received: " + opcode);
 
   const prinType = parseInt(hex.encode(d1.subarray(1, 2)), 16);
-  if (prinType === 22 || prinType === 26)
-    return parseDepositPayloadNoPrincipal(d1);
+  if (prinType === 22 || prinType === 26) return parseDepositPayloadNoPrincipal(d1);
   const addr0 = parseInt(hex.encode(d1.subarray(2, 3)), 16);
   const addr1 = hex.encode(d1.subarray(3, 23));
   const stacksAddress = c32address(addr0, addr1);
@@ -222,9 +186,7 @@ export function amountToBigUint64(amt: number, size: number) {
   //(amt.toString(16).padStart(16, "0"))
 }
 function bufferToHex(buffer: ArrayBuffer) {
-  return [...new Uint8Array(buffer)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export function bigUint64ToAmount(buf: Uint8Array): number {
@@ -236,49 +198,28 @@ export function bigUint64ToAmount(buf: Uint8Array): number {
   return Number(amt);
 }
 
-export function parseWithdrawPayload(
-  network: string,
-  d0: string,
-  bitcoinAddress: string,
-  sigMode: "rsv" | "vrs"
-): PayloadType {
+export function parseWithdrawPayload(network: string, d0: string, bitcoinAddress: string, sigMode: "rsv" | "vrs"): PayloadType {
   const d1 = hex.decode(d0);
   const magicOp = getMagicAndOpCode(d1);
   if (magicOp.magic) {
-    return parseWithdrawalPayloadNoMagic(
-      network,
-      d1.subarray(2),
-      bitcoinAddress,
-      sigMode
-    );
+    return parseWithdrawalPayloadNoMagic(network, d1.subarray(2), bitcoinAddress, sigMode);
   }
   return parseWithdrawalPayloadNoMagic(network, d1, bitcoinAddress, sigMode);
 }
 
-function parseWithdrawalPayloadNoMagic(
-  network: string,
-  d1: Uint8Array,
-  bitcoinAddress: string,
-  sigMode: "rsv" | "vrs"
-): PayloadType {
+function parseWithdrawalPayloadNoMagic(network: string, d1: Uint8Array, bitcoinAddress: string, sigMode: "rsv" | "vrs"): PayloadType {
   const opcode = hex.encode(d1.subarray(0, 1)).toUpperCase();
-  if (opcode !== "3E")
-    throw new Error("Wrong opcode for withdraw: should be 3E was " + opcode);
+  if (opcode !== "3E") throw new Error("Wrong opcode for withdraw: should be 3E was " + opcode);
   const amtB = d1.subarray(1, 9);
   const amountSats = bigUint64ToAmount(amtB);
   let signature = hex.encode(d1.subarray(9, 74));
-  const msgHash = getStacksSimpleHashOfDataToSign(
-    network,
-    amountSats,
-    bitcoinAddress
-  );
+  const msgHash = getStacksSimpleHashOfDataToSign(network, amountSats, bitcoinAddress);
   let stacksAddress: string | undefined;
   try {
     const pubKey = getPubkeySignature(hex.decode(msgHash), signature, sigMode);
     console.log("parseWithdrawalPayloadNoMagic:pubKey: " + hex.encode(pubKey));
     const stxAddresses = getStacksAddressFromPubkey(pubKey);
-    stacksAddress =
-      network === network ? stxAddresses.tp2pkh : stxAddresses.mp2pkh;
+    stacksAddress = network === network ? stxAddresses.tp2pkh : stxAddresses.mp2pkh;
   } catch (err: any) {
     //
   }
@@ -295,33 +236,18 @@ export enum PrincipalType {
   CONTRACT = "06",
 }
 
-export function buildDepositPayload(
-  network: string,
-  stacksAddress: string
-): string {
+export function buildDepositPayload(network: string, stacksAddress: string): string {
   const net = getNet(network);
   return buildDepositPayloadInternal(net, 0, stacksAddress, false);
 }
 
-export function buildDepositPayloadOpDrop(
-  network: string,
-  stacksAddress: string,
-  revealFee: number
-): string {
+export function buildDepositPayloadOpDrop(network: string, stacksAddress: string, revealFee: number): string {
   const net = getNet(network);
   return buildDepositPayloadInternal(net, revealFee, stacksAddress, true);
 }
 
-function buildDepositPayloadInternal(
-  net: any,
-  amountSats: number,
-  address: string,
-  opDrop: boolean
-): string {
-  const magicBuf =
-    typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt")
-      ? hex.decode(MAGIC_BYTES_TESTNET)
-      : hex.decode(MAGIC_BYTES_MAINNET);
+function buildDepositPayloadInternal(net: any, amountSats: number, address: string, opDrop: boolean): string {
+  const magicBuf = typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt") ? hex.decode(MAGIC_BYTES_TESTNET) : hex.decode(MAGIC_BYTES_MAINNET);
   const opCodeBuf = hex.decode(PEGIN_OPCODE);
   const addr = c32addressDecode(address.split(".")[0]);
   //const addr0Buf = hex.encode(amountToUint8(addr[0], 1));
@@ -330,8 +256,7 @@ function buildDepositPayloadInternal(
 
   const cnameLength = new Uint8Array(1);
   //const memoLength = new Uint8Array(1);
-  const principalType =
-    address.indexOf(".") > -1 ? hex.decode("06") : hex.decode("05");
+  const principalType = address.indexOf(".") > -1 ? hex.decode("06") : hex.decode("05");
   let buf1 = concatBytes(opCodeBuf, principalType, addr0Buf, addr1Buf);
   if (address.indexOf(".") > -1) {
     const cnameBuf = new TextEncoder().encode(address.split(".")[1]);
@@ -372,11 +297,7 @@ function buildDepositPayloadInternal(
  * @param signature
  * @returns
  */
-export function buildWithdrawPayload(
-  network: string,
-  amount: number,
-  signature: string
-): string {
+export function buildWithdrawPayload(network: string, amount: number, signature: string): string {
   const net = getNet(network);
   return buildWithdrawPayloadInternal(net, amount, signature, false);
 }
@@ -388,25 +309,13 @@ export function buildWithdrawPayload(
  * @param signature
  * @returns
  */
-export function buildWithdrawPayloadOpDrop(
-  network: string,
-  amount: number,
-  signature: string
-): string {
+export function buildWithdrawPayloadOpDrop(network: string, amount: number, signature: string): string {
   const net = getNet(network);
   return buildWithdrawPayloadInternal(net, amount, signature, true);
 }
 
-function buildWithdrawPayloadInternal(
-  net: any,
-  amount: number,
-  signature: string,
-  opDrop: boolean
-): string {
-  const magicBuf =
-    typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt")
-      ? hex.decode(MAGIC_BYTES_TESTNET)
-      : hex.decode(MAGIC_BYTES_MAINNET);
+function buildWithdrawPayloadInternal(net: any, amount: number, signature: string, opDrop: boolean): string {
+  const magicBuf = typeof net === "object" && (net.bech32 === "tb" || net.bech32 === "bcrt") ? hex.decode(MAGIC_BYTES_TESTNET) : hex.decode(MAGIC_BYTES_MAINNET);
   const opCodeBuf = hex.decode(PEGOUT_OPCODE);
   ///const amountBuf = amountToBigUint64(amount, 8);
   const amountBytes = P.U64BE.encode(BigInt(amount));
@@ -426,22 +335,11 @@ export function readDepositValue(outputs: Array<any>) {
   return amountSats;
 }
 
-export function parsePayloadFromOutput(
-  network: string,
-  tx: btc.Transaction
-): PayloadType {
+export function parsePayloadFromOutput(network: string, tx: btc.Transaction): PayloadType {
   //const out0 = tx.getOutput(0)
   //let d1 = out0.script?.subarray(5) as Uint8Array // strip the op type and data length
-  const vout1Address = getAddressFromOutScript(
-    network,
-    tx.getOutput(1).script || new Uint8Array()
-  );
-  let payload = parseRawPayload(
-    network,
-    hex.encode(tx.getOutput(0).script || new Uint8Array()),
-    vout1Address,
-    "vrs"
-  );
+  const vout1Address = getAddressFromOutScript(network, tx.getOutput(1).script || new Uint8Array());
+  let payload = parseRawPayload(network, hex.encode(tx.getOutput(0).script || new Uint8Array()), vout1Address, "vrs");
   return payload;
 }
 
@@ -452,11 +350,7 @@ export function parsePayloadFromOutput(
  * @param bitcoinAddress
  * @returns
  */
-export function getDataToSign(
-  network: string,
-  amount: number,
-  bitcoinAddress: string
-): string {
+export function getDataToSign(network: string, amount: number, bitcoinAddress: string): string {
   const net = getNet(network);
   const tx = new btc.Transaction({
     allowUnknowOutput: true,
@@ -466,16 +360,10 @@ export function getDataToSign(
   tx.addOutputAddress(bitcoinAddress, BigInt(amount), net);
   const amountBytes = P.U64BE.encode(BigInt(amount));
   const data = concatBytes(amountBytes, tx.getOutput(0).script!);
-  return `Withdraw request for ${amount} satoshis to the bitcoin address ${bitcoinAddress} (${hex.encode(
-    data
-  )})`;
+  return `Withdraw request for ${amount} satoshis to the bitcoin address ${bitcoinAddress} (${hex.encode(data)})`;
 }
 
-export function getStacksSimpleHashOfDataToSign(
-  network: string,
-  amount: number,
-  bitcoinAddress: string
-): string {
+export function getStacksSimpleHashOfDataToSign(network: string, amount: number, bitcoinAddress: string): string {
   const dataToSign = getDataToSign(network, amount, bitcoinAddress);
   const msgHash = hashMessage(dataToSign);
   //console.log('getStacksSimpleHashOfDataToSign:dataToSign: ' + hex.encode(dataToSign))
@@ -495,11 +383,7 @@ function reverseSigBits(signature: string) {
   return signature;
 }
 
-function getPubkeySignature(
-  messageHash: Uint8Array,
-  signature: string,
-  sigMode: "vrs" | "rsv" | undefined
-) {
+function getPubkeySignature(messageHash: Uint8Array, signature: string, sigMode: "vrs" | "rsv" | undefined) {
   /**
 	const sigM = recoverSignature({ signature: signature, mode: sigMode }); // vrs to rsv
 	let sig = new secp.Signature(sigM.signature.r, sigM.signature.s);
@@ -512,11 +396,7 @@ function getPubkeySignature(
 	const pubkey = hex.decode(pubkeyM.toHex());
 	//console.log(pubkeyM.toHex())
 	 */
-  let pubkey = publicKeyFromSignatureVrs(
-    hex.encode(messageHash),
-    signature,
-    PubKeyEncoding.Compressed
-  );
+  let pubkey = publicKeyFromSignatureVrs(hex.encode(messageHash), signature, PubKeyEncoding.Compressed);
   if (sigMode === "rsv") {
     hex.encode(messageHash), signature, PubKeyEncoding.Uncompressed;
   }
@@ -529,18 +409,12 @@ function getPubkeySignature(
  * @param signature
  * @returns
  */
-export function getStacksAddressFromSignature(
-  messageHash: Uint8Array,
-  signature: string
-) {
+export function getStacksAddressFromSignature(messageHash: Uint8Array, signature: string) {
   const pubkey = getPubkeySignature(messageHash, signature, "vrs");
   return getStacksAddressFromPubkey(pubkey);
 }
 
-export function getStacksAddressFromSignatureRsv(
-  messageHash: Uint8Array,
-  signature: string
-) {
+export function getStacksAddressFromSignatureRsv(messageHash: Uint8Array, signature: string) {
   const pubkey = getPubkeySignature(messageHash, signature, "rsv");
   return getStacksAddressFromPubkey(pubkey);
 }
@@ -556,10 +430,7 @@ export function getStacksAddressFromPubkey(pubkey: Uint8Array) {
   return addresses;
 }
 
-function publicKeyToStxAddress(
-  publicKey: Uint8Array,
-  addressVersion: StacksNetworkVersion = StacksNetworkVersion.mainnetP2PKH
-): string {
+function publicKeyToStxAddress(publicKey: Uint8Array, addressVersion: StacksNetworkVersion = StacksNetworkVersion.mainnetP2PKH): string {
   return c32address(addressVersion, hex.encode(hash160(publicKey)));
 }
 
@@ -623,9 +494,7 @@ function codifyScript(script: any, asString: boolean) {
     redeemScript: codify(script.redeemScript, asString),
     leaves: script.leaves ? codifyLeaves(script.leaves, asString) : undefined,
     tapInternalKey: codify(script.tapInternalKey, asString),
-    tapLeafScript: script.tapLeafScript
-      ? codifyTapLeafScript(script.tapLeafScript, asString)
-      : undefined,
+    tapLeafScript: script.tapLeafScript ? codifyTapLeafScript(script.tapLeafScript, asString) : undefined,
     tapMerkleRoot: codify(script.tapMerkleRoot, asString),
     tweakedPubkey: codify(script.tweakedPubkey, asString),
   };
@@ -634,30 +503,14 @@ function codifyScript(script: any, asString: boolean) {
 function codifyTapLeafScript(tapLeafScript: any, asString: boolean) {
   if (tapLeafScript[0]) {
     const level0 = tapLeafScript[0];
-    if (level0[0])
-      tapLeafScript[0][0].internalKey = codify(
-        tapLeafScript[0][0].internalKey,
-        asString
-      );
-    if (level0[0])
-      tapLeafScript[0][0].merklePath[0] = codify(
-        tapLeafScript[0][0].merklePath[0],
-        asString
-      );
+    if (level0[0]) tapLeafScript[0][0].internalKey = codify(tapLeafScript[0][0].internalKey, asString);
+    if (level0[0]) tapLeafScript[0][0].merklePath[0] = codify(tapLeafScript[0][0].merklePath[0], asString);
     if (level0[1]) tapLeafScript[0][1] = codify(tapLeafScript[0][1], asString);
   }
   if (tapLeafScript[1]) {
     const level1 = tapLeafScript[1];
-    if (level1[0])
-      tapLeafScript[1][0].internalKey = codify(
-        tapLeafScript[1][0].internalKey,
-        asString
-      );
-    if (level1[0])
-      tapLeafScript[1][0].merklePath[0] = codify(
-        tapLeafScript[1][0].merklePath[0],
-        asString
-      );
+    if (level1[0]) tapLeafScript[1][0].internalKey = codify(tapLeafScript[1][0].internalKey, asString);
+    if (level1[0]) tapLeafScript[1][0].merklePath[0] = codify(tapLeafScript[1][0].merklePath[0], asString);
     if (level1[1]) tapLeafScript[1][1] = codify(tapLeafScript[1][1], asString);
   }
   return tapLeafScript;
@@ -674,21 +527,17 @@ function codify(arg: unknown, asString: boolean) {
 function codifyLeaves(leaves: any, asString: boolean) {
   if (leaves[0]) {
     const level1 = leaves[0];
-    if (level1.controlBlock)
-      leaves[0].controlBlock = codify(leaves[0].controlBlock, asString);
+    if (level1.controlBlock) leaves[0].controlBlock = codify(leaves[0].controlBlock, asString);
     if (level1.hash) leaves[0].hash = codify(leaves[0].hash, asString);
     if (level1.script) leaves[0].script = codify(leaves[0].script, asString);
-    if (level1.path && level1.path[0])
-      leaves[0].path[0] = codify(leaves[0].path[0], asString);
+    if (level1.path && level1.path[0]) leaves[0].path[0] = codify(leaves[0].path[0], asString);
   }
   if (leaves[1]) {
     const level1 = leaves[1];
-    if (level1.controlBlock)
-      leaves[1].controlBlock = codify(leaves[1].controlBlock, asString);
+    if (level1.controlBlock) leaves[1].controlBlock = codify(leaves[1].controlBlock, asString);
     if (level1.hash) leaves[1].hash = codify(leaves[1].hash, asString);
     if (level1.script) leaves[1].script = codify(leaves[1].script, asString);
-    if (level1.path && level1.path[0])
-      leaves[1].path[0] = codify(leaves[1].path[0], asString);
+    if (level1.path && level1.path[0]) leaves[1].path[0] = codify(leaves[1].path[0], asString);
   }
   return leaves;
 }
@@ -699,10 +548,7 @@ function codifyLeaves(leaves: any, asString: boolean) {
  * @param script: Uint8Array
  * @returns address as string
  */
-export function getAddressFromOutScript(
-  network: string,
-  script: Uint8Array
-): string {
+export function getAddressFromOutScript(network: string, script: Uint8Array): string {
   const net = getNet(network);
   const outputScript = btc.OutScript.decode(script);
 
@@ -728,8 +574,5 @@ export function getAddressFromOutScript(
   if (outputScript.type === "unknown") {
     return `${outputScript.type}::${hex.encode(script)}`;
   }
-  return btc.Address(net).encode({
-    type: outputScript.type,
-    hash: outputScript.hash,
-  });
+  throw new Error("Unkown address format");
 }

@@ -15,9 +15,7 @@ const common_1 = require("@stacks/common");
 const network_1 = require("@stacks/network");
 exports.ADMIN_MESSAGE = "please sign this message to authorise DAO management task.";
 // see https://github.com/hirosystems/stacks.js/blob/fd0bf26b5f29fc3c1bf79581d0ad9b89f0d7f15a/packages/transactions/src/structuredDataSignature.ts#L55
-exports.STRUCTURED_DATA_PREFIX = new Uint8Array([
-    0x53, 0x49, 0x50, 0x30, 0x31, 0x38,
-]);
+exports.STRUCTURED_DATA_PREFIX = new Uint8Array([0x53, 0x49, 0x50, 0x30, 0x31, 0x38]);
 function adminMessageToTupleCV(message) {
     return (0, transactions_1.tupleCV)({
         message: (0, transactions_1.stringAsciiCV)(message.message),
@@ -62,7 +60,7 @@ function verifyDaoSignature(network, appName, appVersion, message, publicKey, si
         "chain-id": (0, transactions_1.uintCV)(chainId),
     });
     const structuredDataHash = (0, common_1.bytesToHex)((0, sha256_1.sha256)((0, transactions_1.encodeStructuredDataBytes)({ message, domain })));
-    console.log("signature.hash: " + structuredDataHash);
+    //console.log("signature.hash: " + structuredDataHash);
     const signatureBytes = (0, common_1.hexToBytes)(signature);
     const strippedSignature = signatureBytes.slice(0, -1);
     //console.log("Stripped Signature (Hex):", bytesToHex(strippedSignature));
@@ -70,19 +68,17 @@ function verifyDaoSignature(network, appName, appVersion, message, publicKey, si
     let stacksAddress = "-";
     try {
         pubkey = (0, transactions_1.publicKeyFromSignatureRsv)(structuredDataHash, signature);
-        if (network === "mainnet" ||
-            network === "testnet" ||
-            network === "devnet") {
+        if (network === "mainnet" || network === "testnet" || network === "devnet") {
             stacksAddress = (0, transactions_1.publicKeyToAddressSingleSig)(pubkey, network);
         }
-        console.log("sa: " + pubkey);
+        //console.log("sa: " + pubkey);
     }
     catch (err) { }
-    console.log("pubkey: " + pubkey);
+    //console.log("pubkey: " + pubkey);
     let result = false;
     try {
         result = (0, encryption_1.verifySignature)((0, common_1.bytesToHex)(strippedSignature), structuredDataHash, publicKey);
-        console.log("verifySignatureRsv: result: " + result);
+        //console.log("verifySignatureRsv: result: " + result);
     }
     catch (err) { }
     return result ? stacksAddress : undefined;
@@ -97,9 +93,7 @@ function votesToClarityValue(proposal, votes, reclaimProposal) {
             vote: (0, transactions_1.boolCV)(vote.vote),
             voter: (0, transactions_1.principalCV)(vote.voter),
             amount: (0, transactions_1.uintCV)(vote.voting_power),
-            "reclaim-proposal": reclaimProposal
-                ? (0, transactions_1.someCV)((0, transactions_1.contractPrincipalCV)(reclaimProposal.split(".")[0], reclaimProposal.split(".")[1]))
-                : (0, transactions_1.noneCV)(),
+            "reclaim-proposal": reclaimProposal ? (0, transactions_1.someCV)((0, transactions_1.contractPrincipalCV)(reclaimProposal.split(".")[0], reclaimProposal.split(".")[1])) : (0, transactions_1.noneCV)(),
         }),
         signature: (0, transactions_1.bufferCV)((0, common_1.hexToBytes)(vote.signature)),
     })));

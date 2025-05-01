@@ -1,36 +1,14 @@
-import { ObjectId } from "mongodb";
-import {
-  principalCV,
-  serializeCV,
-  stringAsciiCV,
-  tupleCV,
-  uintCV,
-} from "@stacks/transactions";
+import { principalCV, serializeCV, stringAsciiCV, tupleCV, uintCV } from "@stacks/transactions";
 import { callContractReadOnly } from "../stacks-node";
 
 export type ScalarMarketDataItem = {
   min: number;
   max: number;
 };
-
-export type PredictionMarketCreateEvent = {
-  _id: ObjectId;
-  event: string;
-  event_index: number;
-  daoContract: string;
-  txId: string;
-  votingContract: string;
-  marketId: number;
-  marketType: number;
-  unhashedData: StoredOpinionPoll;
-  category?: string;
-  resolver: string;
-  disputer: string;
-  daoFee: number;
-  transferLosingStakes?: number;
-  marketData: MarketData;
-  priceOutcome?: number;
-  stacksHeight?: number;
+export type Criterion = {
+  criteria: string;
+  resolvesAt: number;
+  sources: Array<string>;
 };
 
 export type MarketData = {
@@ -53,12 +31,13 @@ export type MarketData = {
 };
 
 export interface StoredOpinionPoll extends OpinionPoll {
-  _id?: ObjectId;
+  _id?: string;
   objectHash: string;
   processed: boolean;
   signature: string;
   publicKey: string;
   merkelRoot?: string;
+  outcomes?: Array<string | ScalarMarketDataItem>;
   contractIds?: Array<string>;
   featured: boolean;
 }
@@ -74,7 +53,7 @@ export type OpinionPoll = {
   name: string;
   description: string;
   category: string;
-  criteria: string;
+  criterion: Criterion;
   logo: string;
   proposer: string;
   token: string;
@@ -92,12 +71,8 @@ export type OpinionPoll = {
   };
 };
 
-export async function fetchMarketData(
-  stacksApi: string,
-  marketId: number,
-  contractAddress: string,
-  contractName: string
-): Promise<MarketData | undefined> {
+export async function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string): Promise<MarketData | undefined> {
+  let sbtcContract = stacksApi.indexOf("localhost") > -1 ? "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc" : "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token";
   const data = {
     contractAddress,
     contractName,
@@ -109,9 +84,7 @@ export async function fetchMarketData(
     const result = await callContractReadOnly(stacksApi, data);
     let categories;
     if (!type2) {
-      categories = result.value.value["categories"].value.map(
-        (item: any) => item.value
-      );
+      categories = result.value.value["categories"].value.map((item: any) => item.value);
     } else {
       categories = result.value.value["categories"].value.map((item: any) => ({
         min: Number(item.value.min.value),
@@ -119,38 +92,24 @@ export async function fetchMarketData(
       }));
     }
 
-    const stakes = result.value.value["stakes"].value.map((item: any) =>
-      Number(item.value)
-    );
+    const stakes = result.value.value["stakes"].value.map((item: any) => Number(item.value));
 
-    let resolutionBurnHeight = type2
-      ? undefined
-      : Number(result.value.value["resolution-burn-height"].value);
+    let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
 
-    let marketStart = type2
-      ? Number(result.value.value["market-start"].value)
-      : undefined;
+    let marketStart = type2 ? Number(result.value.value["market-start"].value) : undefined;
 
-    let marketDuration = type2
-      ? Number(result.value.value["market-duration"].value)
-      : undefined;
+    let marketDuration = type2 ? Number(result.value.value["market-duration"].value) : undefined;
 
-    let coolDownPeriod = type2
-      ? Number(result.value.value["cool-down-period"].value)
-      : undefined;
+    let coolDownPeriod = type2 ? Number(result.value.value["cool-down-period"].value) : undefined;
 
-    let priceFeedId = type2
-      ? result.value.value["price-feed-id"].value
-      : undefined;
+    let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
 
     return {
       concluded: Boolean(result.value.value.concluded.value),
       creator: result.value.value.creator.value,
-      token: result.value.value.token.value,
+      token: result.value.value.token?.value || sbtcContract,
       treasury: result.value.value.treasury.value,
-      outcome: result.value.value.outcome?.value?.value
-        ? Number(result.value.value.outcome.value.value)
-        : undefined,
+      outcome: result.value.value.outcome?.value?.value ? Number(result.value.value.outcome.value.value) : undefined,
       marketFeeBips: Number(result.value.value["market-fee-bips"].value),
       metadataHash: result.value.value["market-data-hash"].value,
       stakes,
@@ -171,26 +130,16 @@ export type UserStake = {
   stakes: Array<number>;
 };
 
-export async function fetchUserStake(
-  stacksApi: string,
-  marketId: number,
-  contractAddress: string,
-  contractName: string,
-  user: string
-): Promise<UserStake | undefined> {
+export async function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined> {
   try {
     const data = {
       contractAddress,
       contractName,
       functionName: "get-stake-balances",
-      functionArgs: [
-        `0x${serializeCV(uintCV(marketId))}`,
-        `0x${serializeCV(principalCV(user))}`,
-      ],
+      functionArgs: [`0x${serializeCV(uintCV(marketId))}`, `0x${serializeCV(principalCV(user))}`],
     };
     const result = await callContractReadOnly(stacksApi, data);
-    const stakes =
-      result.value?.value.map((item: any) => Number(item.value)) || undefined;
+    const stakes = result.value?.value.map((item: any) => Number(item.value)) || undefined;
     if (!result.value) return;
     return {
       stakes,
@@ -208,8 +157,8 @@ export type MarketCategoricalOption = {
 
 // ✅ / ❌ 🟢 / 🔴 👍 / 👎 ⭕ / ❌ 🤝 Agree / 🚫 Disagree 🆗 Agree / 🛑 Disagree 📈 For / 📉 Against 1️⃣ Yes / 0️⃣ No
 export const MARKET_BINARY_OPTION: Array<MarketCategoricalOption> = [
-  { label: "nay", displayName: "against", icon: "👎" },
-  { label: "yay", displayName: "for", icon: "👍" },
+  { label: "AGAINST", displayName: "against", icon: "👎" },
+  { label: "FOR", displayName: "for", icon: "👍" },
 ];
 
 export type MarketCategory = {
@@ -219,13 +168,7 @@ export type MarketCategory = {
   active: boolean;
 };
 
-export function opinionPollToTupleCV(
-  name: string,
-  category: string,
-  createdAt: number,
-  proposer: string,
-  token: string
-) {
+export function marketDataToTupleCV(name: string, category: string, createdAt: number, proposer: string, token: string) {
   return tupleCV({
     name: stringAsciiCV(name),
     category: stringAsciiCV(category),
@@ -235,39 +178,6 @@ export function opinionPollToTupleCV(
   });
 }
 
-export enum ResolutionState {
-  RESOLUTION_OPEN = 0,
-  RESOLUTION_RESOLVING = 1,
-  RESOLUTION_DISPUTED = 2,
-  RESOLUTION_RESOLVED = 3,
-}
-export type PredictionMarketStakeEvent = {
-  _id: ObjectId;
-  event: string;
-  event_index: number;
-  daoContract: string;
-  txId: string;
-  votingContract: string;
-  marketId: number;
-  marketType: number;
-  amount: number;
-  index: number;
-  voter: string;
-};
-
-export type TokenPermissionEvent = {
-  _id?: ObjectId;
-  event: string;
-  marketType: number;
-  event_index: number;
-  daoContract: string;
-  txId: string;
-  votingContract: string;
-  allowed: boolean;
-  token: string;
-  sip10Data?: Sip10Data;
-};
-
 export type Sip10Data = {
   symbol: string;
   name: string;
@@ -276,13 +186,52 @@ export type Sip10Data = {
   totalSupply: number;
   tokenUri: string;
 };
-export type PredictionMarketClaimEvent = {
-  _id: ObjectId;
+
+export enum ResolutionState {
+  RESOLUTION_OPEN = 0,
+  RESOLUTION_RESOLVING = 1,
+  RESOLUTION_DISPUTED = 2,
+  RESOLUTION_RESOLVED = 3,
+}
+export interface BasicEvent {
+  _id?: string;
   event: string;
   event_index: number;
-  daoContract: string;
   txId: string;
-  votingContract: string;
+  daoContract: string;
+  extension: string;
+}
+
+export interface PredictionMarketCreateEvent extends BasicEvent {
+  marketId: number;
+  marketType: number;
+  unhashedData: StoredOpinionPoll;
+  category?: string;
+  resolver: string;
+  disputer: string;
+  daoFee: number;
+  transferLosingStakes?: number;
+  marketData: MarketData;
+  priceOutcome?: number;
+  stacksHeight?: number;
+}
+
+export interface PredictionMarketStakeEvent extends BasicEvent {
+  marketId: number;
+  marketType: number;
+  amount: number;
+  index: number;
+  voter: string;
+}
+
+export interface TokenPermissionEvent extends BasicEvent {
+  marketType: number;
+  allowed: boolean;
+  token: string;
+  sip10Data?: Sip10Data;
+}
+
+export interface PredictionMarketClaimEvent extends BasicEvent {
   marketId: number;
   marketType: number;
   claimer: string;
@@ -293,4 +242,162 @@ export type PredictionMarketClaimEvent = {
   daoFee: number;
   marketFee: number;
   totalPool: ResolutionState;
+}
+export type TopMarket = {
+  market: PredictionMarketCreateEvent;
+  totalStakes: number;
 };
+export type LeaderBoard = {
+  latestPredicitons: Array<PredictionMarketStakeEvent>;
+  topMarkets: Array<TopMarket>;
+};
+export interface CorePorposalsSetTeamMemberEvent extends BasicEvent {
+  who: string;
+  member: boolean;
+}
+export interface GovernanceTokenCoreClaimEvent extends BasicEvent {
+  recipient: string;
+  claimed: number;
+  claimable: number;
+  elapsed: number;
+  vested: number;
+}
+
+export interface GovernanceTokenCoreVestingEvent extends BasicEvent {
+  amount: number;
+  startBlock: number;
+  duration: number;
+  currentKey: number;
+}
+
+export interface MarketGatingAccessByAccountEvent extends BasicEvent {
+  contractKey: string;
+  contractName: string;
+  root: string;
+  leaf: string;
+  sender: string;
+  txsender: string;
+  proofValid: boolean;
+}
+
+export interface MarketGatingUpdateRootEvent extends BasicEvent {
+  hashedId: string;
+  merkleRoot: string;
+}
+
+export interface MarketGatingUpdateRootByPrincipalEvent extends BasicEvent {
+  contractId: string;
+  contractName: string;
+  contractKey: string;
+  merkleRoot: string;
+}
+export interface MarketVotingCreateEvent extends BasicEvent {
+  marketId: number;
+  market: string;
+  proposer: string;
+  concludeTxId?: string;
+  isGated: boolean;
+  winningCategory: number;
+}
+// export type PollCreateEvent = {
+//   concludeTxId: string;
+//   isGated: boolean;
+//   pollId: number;
+//   marketId: number;
+//   metadataHash: string;
+//   endBurnHeight: number;
+//   startBurnHeight: number;
+//   proposer: string;
+//   winningCategory: boolean;
+//   unhashedData: StoredOpinionPoll;
+// };
+
+export interface MarketVotingVoteEvent extends BasicEvent {
+  marketId: number;
+  voter: string;
+  categoryFor: number;
+  sip18: boolean;
+  amount: number;
+  prevMarketId?: number;
+}
+// export type PollVoteEvent = {
+//   pollId: number;
+//   voter: string;
+//   for: number;
+//   sip18: number;
+//   amount: number;
+//   reclaimId?: number;
+// };
+
+export interface MarketVotingConcludeEvent extends BasicEvent {
+  marketId: number;
+  winningCategory: number;
+  result: boolean;
+}
+export interface TokenSaleInitialisationEvent extends BasicEvent {}
+
+export interface TokenSalePurchaseEvent extends BasicEvent {
+  buyer: string;
+  stage: number;
+  tokens: number;
+  stxAmount?: number;
+}
+
+export interface TokenSaleAdvanceStageEvent extends BasicEvent {
+  newStage: number;
+  burnStart: number;
+}
+
+export interface TokenSaleCancelStageEvent extends BasicEvent {
+  stage: number;
+}
+
+export interface TokenSaleRefundEvent extends BasicEvent {
+  buyer: string;
+  refunded: number;
+  stage: number;
+}
+
+export interface ReputationBigClaimEvent extends BasicEvent {
+  batched: boolean;
+  user: string;
+  epoch: number;
+  amount: number;
+  rewardPerEpoch: number;
+}
+
+export interface ReputationSftTransferEvent extends BasicEvent {
+  tokenId: number;
+  sender: string;
+  recipient: string;
+  amount: number;
+}
+
+export interface ReputationSftBurnEvent extends BasicEvent {
+  tokenId: number;
+  sender: string;
+  amount: number;
+}
+
+export interface ReputationSftMintEvent extends BasicEvent {
+  tokenId: number;
+  recipient: string;
+  amount: number;
+}
+
+export interface LiquidityContributionEvent extends BasicEvent {
+  bigr: number;
+  from: string;
+  amount: number;
+}
+
+export function createBasicEvent(id: string, event: any, daoContract: string, extension: string, eventType: string): BasicEvent {
+  return {
+    _id: id,
+    event: eventType,
+    event_index: Number(event.event_index),
+    txId: event.tx_id,
+    daoContract,
+    extension,
+  };
+}

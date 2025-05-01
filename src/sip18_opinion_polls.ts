@@ -1,19 +1,8 @@
-import {
-  boolCV,
-  bufferCV,
-  listCV,
-  noneCV,
-  principalCV,
-  someCV,
-  stringAsciiCV,
-  tupleCV,
-  uintCV,
-} from "@stacks/transactions";
+import { boolCV, bufferCV, listCV, noneCV, principalCV, someCV, stringAsciiCV, tupleCV, uintCV } from "@stacks/transactions";
 import { hexToBytes } from "@stacks/common";
-import { ObjectId } from "mongodb";
 
 export interface StoredPollVoteMessage extends PollVoteMessage {
-  _id: ObjectId;
+  _id?: string;
   pollVoteObjectHash: string;
   processed: boolean;
   signature: string;
@@ -64,17 +53,10 @@ export function pollVotesToClarityValue(pollVotes: StoredPollVoteMessage[]) {
           timestamp: uintCV(poll.timestamp),
           vote: boolCV(poll.vote),
           voter: principalCV(poll.voter),
-          "nft-contract": poll.nftContract
-            ? someCV(principalCV(poll.nftContract))
-            : noneCV(),
-          "ft-contract": poll.ftContract
-            ? someCV(principalCV(poll.ftContract))
-            : noneCV(),
+          "nft-contract": poll.nftContract ? someCV(principalCV(poll.nftContract)) : noneCV(),
+          "ft-contract": poll.ftContract ? someCV(principalCV(poll.ftContract)) : noneCV(),
           "token-id": poll.tokenId ? someCV(uintCV(poll.tokenId)) : noneCV(),
-          proof:
-            poll.proof && poll.proof.length > 0
-              ? someCV(listCV(poll.proof.map((p) => bufferCV(hexToBytes(p)))))
-              : noneCV(),
+          proof: poll.proof && poll.proof.length > 0 ? someCV(listCV(poll.proof.map((p) => bufferCV(hexToBytes(p))))) : noneCV(),
         }),
         signature: bufferCV(hexToBytes(poll.signature)),
       })

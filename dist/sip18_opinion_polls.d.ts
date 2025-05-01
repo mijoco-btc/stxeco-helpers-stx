@@ -1,6 +1,5 @@
-import { ObjectId } from "mongodb";
 export interface StoredPollVoteMessage extends PollVoteMessage {
-    _id: ObjectId;
+    _id?: string;
     pollVoteObjectHash: string;
     processed: boolean;
     signature: string;

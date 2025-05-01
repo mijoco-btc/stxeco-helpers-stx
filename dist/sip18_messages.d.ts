@@ -1,8 +1,7 @@
 import { ClarityValue, type TupleCV, type TupleData } from "@stacks/transactions";
-import { ObjectId } from "mongodb";
 import { SignatureData } from "@stacks/connect";
 export interface StoredVoteMessage extends VoteMessage {
-    _id: ObjectId;
+    _id?: string;
     voteObjectHash: string;
     processed: boolean;
     signature: string;

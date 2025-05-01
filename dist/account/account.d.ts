@@ -1,5 +1,5 @@
 import { UserData } from "@stacks/connect";
-import { AddressObject, ExchangeRate } from "../sbtc";
+import { AddressObject, ExchangeRate, SbtcUserSettingI } from "../sbtc";
 import * as btc from "@scure/btc-signer";
 export declare function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
 export declare function isSTX(token: string): boolean;
@@ -18,12 +18,7 @@ export declare function checkAddressForNetwork(net: string, address: string | un
 export declare function decodeStacksAddress(stxAddress: string): [number, string];
 export declare function encodeStacksAddress(network: string, b160Address: string): string;
 export declare function verifyStacksPricipal(network: string, stacksAddress?: string): string;
-export declare function getNet(network: string): {
-    bech32: string;
-    pubKeyHash: number;
-    scriptHash: number;
-    wif: number;
-};
+export declare function getNet(network: string): import("@scure/btc-signer/utils").BTC_NETWORK;
 export declare const REGTEST_NETWORK: typeof btc.NETWORK;
 export declare function makeFlash(el1: HTMLElement | null): void;
 export declare function isLegal(routeId: string): boolean;
@@ -31,3 +26,5 @@ export declare function verifyAmount(amount: number, balance: number): void;
 export declare function verifySBTCAmount(amount: number, balance: number, fee: number): void;
 export declare function initAddresses(sessionStore: any): void;
 export declare function initApplication(stacksApi: string, mempoolApi: string, network: string, sessionStore: any, exchangeRates: Array<ExchangeRate>, ftContract: string, userData: UserData | undefined): Promise<void>;
+export declare function defaultSettings(): SbtcUserSettingI;
+export declare function defaultExchangeRate(): ExchangeRate;

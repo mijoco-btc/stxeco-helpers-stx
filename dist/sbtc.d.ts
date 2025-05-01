@@ -254,6 +254,8 @@ export type ExchangeRate = {
     symbol: string;
     name: string;
     stxToBtc: number;
+    ethToBtc: number;
+    solToBtc: number;
 };
 export type AuthorisationDataType = {
     signature: string;

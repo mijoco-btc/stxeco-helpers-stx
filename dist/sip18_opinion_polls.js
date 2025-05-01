@@ -33,16 +33,10 @@ function pollVotesToClarityValue(pollVotes) {
             timestamp: (0, transactions_1.uintCV)(poll.timestamp),
             vote: (0, transactions_1.boolCV)(poll.vote),
             voter: (0, transactions_1.principalCV)(poll.voter),
-            "nft-contract": poll.nftContract
-                ? (0, transactions_1.someCV)((0, transactions_1.principalCV)(poll.nftContract))
-                : (0, transactions_1.noneCV)(),
-            "ft-contract": poll.ftContract
-                ? (0, transactions_1.someCV)((0, transactions_1.principalCV)(poll.ftContract))
-                : (0, transactions_1.noneCV)(),
+            "nft-contract": poll.nftContract ? (0, transactions_1.someCV)((0, transactions_1.principalCV)(poll.nftContract)) : (0, transactions_1.noneCV)(),
+            "ft-contract": poll.ftContract ? (0, transactions_1.someCV)((0, transactions_1.principalCV)(poll.ftContract)) : (0, transactions_1.noneCV)(),
             "token-id": poll.tokenId ? (0, transactions_1.someCV)((0, transactions_1.uintCV)(poll.tokenId)) : (0, transactions_1.noneCV)(),
-            proof: poll.proof && poll.proof.length > 0
-                ? (0, transactions_1.someCV)((0, transactions_1.listCV)(poll.proof.map((p) => (0, transactions_1.bufferCV)((0, common_1.hexToBytes)(p)))))
-                : (0, transactions_1.noneCV)(),
+            proof: poll.proof && poll.proof.length > 0 ? (0, transactions_1.someCV)((0, transactions_1.listCV)(poll.proof.map((p) => (0, transactions_1.bufferCV)((0, common_1.hexToBytes)(p))))) : (0, transactions_1.noneCV)(),
         }),
         signature: (0, transactions_1.bufferCV)((0, common_1.hexToBytes)(poll.signature)),
     })));

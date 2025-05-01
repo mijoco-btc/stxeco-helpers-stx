@@ -13,7 +13,6 @@ import {
   publicKeyToAddressSingleSig,
   someCV,
   stringAsciiCV,
-  stringUtf8CV,
   tupleCV,
   uintCV,
   type TupleCV,
@@ -21,11 +20,10 @@ import {
 } from "@stacks/transactions";
 import { bytesToHex, hexToBytes } from "@stacks/common";
 import { ChainId } from "@stacks/network";
-import { ObjectId } from "mongodb";
 import { SignatureData } from "@stacks/connect";
 
 export interface StoredVoteMessage extends VoteMessage {
-  _id: ObjectId;
+  _id?: string;
   voteObjectHash: string;
   processed: boolean;
   signature: string;
@@ -40,8 +38,7 @@ export interface VoteMessage {
   voting_power: number;
 }
 
-export const ADMIN_MESSAGE =
-  "please sign this message to authorise DAO management task.";
+export const ADMIN_MESSAGE = "please sign this message to authorise DAO management task.";
 export type BaseAdminMessage = {
   message: string;
   timestamp: number;
@@ -56,9 +53,7 @@ export const enum ChainID {
   Mainnet = 1,
 }
 // see https://github.com/hirosystems/stacks.js/blob/fd0bf26b5f29fc3c1bf79581d0ad9b89f0d7f15a/packages/transactions/src/structuredDataSignature.ts#L55
-export const STRUCTURED_DATA_PREFIX = new Uint8Array([
-  0x53, 0x49, 0x50, 0x30, 0x31, 0x38,
-]);
+export const STRUCTURED_DATA_PREFIX = new Uint8Array([0x53, 0x49, 0x50, 0x30, 0x31, 0x38]);
 
 export function adminMessageToTupleCV(message: BaseAdminMessage) {
   return tupleCV({
@@ -68,23 +63,9 @@ export function adminMessageToTupleCV(message: BaseAdminMessage) {
   });
 }
 
-export function verifyBaseAdminSignature(
-  network: string,
-  appName: string,
-  appVersion: string,
-  adminMessage: BaseAdminMessage,
-  publicKey: string,
-  signature: string
-) {
+export function verifyBaseAdminSignature(network: string, appName: string, appVersion: string, adminMessage: BaseAdminMessage, publicKey: string, signature: string) {
   const message = adminMessageToTupleCV(adminMessage);
-  return verifyDaoSignature(
-    network,
-    appName,
-    appVersion,
-    message,
-    publicKey,
-    signature
-  );
+  return verifyDaoSignature(network, appName, appVersion, message, publicKey, signature);
 }
 
 export function voteMessageToTupleCV(message: VoteMessage) {
@@ -98,12 +79,7 @@ export function voteMessageToTupleCV(message: VoteMessage) {
   });
 }
 
-export function dataHashSip18(
-  network: string,
-  appName: string,
-  appVersion: string,
-  messageTupleCV: TupleCV<TupleData<ClarityValue>>
-) {
+export function dataHashSip18(network: string, appName: string, appVersion: string, messageTupleCV: TupleCV<TupleData<ClarityValue>>) {
   const message = messageTupleCV;
   const chainId = network === "mainnet" ? ChainId.Mainnet : ChainId.Testnet;
   const domain = tupleCV({
@@ -111,50 +87,25 @@ export function dataHashSip18(
     version: stringAsciiCV(appVersion),
     "chain-id": uintCV(chainId),
   });
-  const structuredDataHash = bytesToHex(
-    sha256(encodeStructuredDataBytes({ message, domain }))
-  );
+  const structuredDataHash = bytesToHex(sha256(encodeStructuredDataBytes({ message, domain })));
   return structuredDataHash;
 }
 
-export function verifySip18VoteSignature(
-  network: string,
-  appName: string,
-  appVersion: string,
-  voteMessage: VoteMessage,
-  publicKey: string,
-  signature: string
-) {
+export function verifySip18VoteSignature(network: string, appName: string, appVersion: string, voteMessage: VoteMessage, publicKey: string, signature: string) {
   const message = voteMessageToTupleCV(voteMessage);
-  return verifyDaoSignature(
-    network,
-    appName,
-    appVersion,
-    message,
-    publicKey,
-    signature
-  );
+  return verifyDaoSignature(network, appName, appVersion, message, publicKey, signature);
 }
 
-export function verifyDaoSignature(
-  network: string,
-  appName: string,
-  appVersion: string,
-  message: TupleCV<TupleData<ClarityValue>>,
-  publicKey: string,
-  signature: string
-): string | undefined {
+export function verifyDaoSignature(network: string, appName: string, appVersion: string, message: TupleCV<TupleData<ClarityValue>>, publicKey: string, signature: string): string | undefined {
   const chainId = network === "mainnet" ? ChainId.Mainnet : ChainId.Testnet;
   const domain = tupleCV({
     name: stringAsciiCV(appName),
     version: stringAsciiCV(appVersion),
     "chain-id": uintCV(chainId),
   });
-  const structuredDataHash = bytesToHex(
-    sha256(encodeStructuredDataBytes({ message, domain }))
-  );
+  const structuredDataHash = bytesToHex(sha256(encodeStructuredDataBytes({ message, domain })));
 
-  console.log("signature.hash: " + structuredDataHash);
+  //console.log("signature.hash: " + structuredDataHash);
 
   const signatureBytes = hexToBytes(signature);
   const strippedSignature = signatureBytes.slice(0, -1);
@@ -165,38 +116,23 @@ export function verifyDaoSignature(
   try {
     pubkey = publicKeyFromSignatureRsv(structuredDataHash, signature);
 
-    if (
-      network === "mainnet" ||
-      network === "testnet" ||
-      network === "devnet"
-    ) {
+    if (network === "mainnet" || network === "testnet" || network === "devnet") {
       stacksAddress = publicKeyToAddressSingleSig(pubkey, network);
     }
 
-    console.log("sa: " + pubkey);
+    //console.log("sa: " + pubkey);
   } catch (err: any) {}
-  console.log("pubkey: " + pubkey);
+  //console.log("pubkey: " + pubkey);
   let result = false;
   try {
-    result = verifySignature(
-      bytesToHex(strippedSignature),
-      structuredDataHash,
-      publicKey
-    );
-    console.log("verifySignatureRsv: result: " + result);
+    result = verifySignature(bytesToHex(strippedSignature), structuredDataHash, publicKey);
+    //console.log("verifySignatureRsv: result: " + result);
   } catch (err: any) {}
   return result ? stacksAddress : undefined;
 }
 
-export function votesToClarityValue(
-  proposal: string,
-  votes: StoredVoteMessage[],
-  reclaimProposal?: string
-) {
-  const proposalCV = contractPrincipalCV(
-    proposal.split(".")[0],
-    proposal.split(".")[1]
-  );
+export function votesToClarityValue(proposal: string, votes: StoredVoteMessage[], reclaimProposal?: string) {
+  const proposalCV = contractPrincipalCV(proposal.split(".")[0], proposal.split(".")[1]);
 
   const votesCV = listCV(
     votes.map((vote) =>
@@ -208,14 +144,7 @@ export function votesToClarityValue(
           vote: boolCV(vote.vote),
           voter: principalCV(vote.voter),
           amount: uintCV(vote.voting_power),
-          "reclaim-proposal": reclaimProposal
-            ? someCV(
-                contractPrincipalCV(
-                  reclaimProposal.split(".")[0],
-                  reclaimProposal.split(".")[1]
-                )
-              )
-            : noneCV(),
+          "reclaim-proposal": reclaimProposal ? someCV(contractPrincipalCV(reclaimProposal.split(".")[0], reclaimProposal.split(".")[1])) : noneCV(),
         }),
         signature: bufferCV(hexToBytes(vote.signature)),
       })

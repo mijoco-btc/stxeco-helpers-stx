@@ -16,11 +16,7 @@ export type TokenSale = {
   currentStageStart: number;
   currentStage: number;
 };
-export async function fetchTokenSaleStages(
-  stacksApi: string,
-  contractAddress: string,
-  contractName: string
-): Promise<TokenSale> {
+export async function fetchTokenSaleStages(stacksApi: string, contractAddress: string, contractName: string): Promise<TokenSale> {
   const data = {
     contractAddress,
     contractName,
@@ -29,27 +25,25 @@ export async function fetchTokenSaleStages(
   };
   const result = await callContractReadOnly(stacksApi, data);
   const stages = result.value.map((stage: any) => {
-    if (stage.value) {
+    if (stage?.value) {
+      const val = stage.value.value;
       return {
-        cancelled: stage.value.value.cancelled.value || false,
-        maxSupply: Number(stage.value.value["max-supply"].value) || 0,
-        price: Number(stage.value.value.price.value) || 0,
-        tokensSold: Number(stage.value.value["tokens-sold"].value) || 0,
+        cancelled: val.cancelled?.value || false,
+        maxSupply: Number(val["max-supply"]?.value) || 0,
+        price: Number(val.price?.value) || 0,
+        tokensSold: Number(val["tokens-sold"]?.value) || 0,
       };
     }
+    // fallback if stage.value is missing
+    return {
+      cancelled: false,
+      maxSupply: 0,
+      price: 0,
+      tokensSold: 0,
+    };
   });
-  let currentStageStart = await extractValue(
-    stacksApi,
-    contractAddress,
-    contractName,
-    "current-stage-start"
-  );
-  let currentStage = await extractValue(
-    stacksApi,
-    contractAddress,
-    contractName,
-    "current-stage"
-  );
+  let currentStageStart = await extractValue(stacksApi, contractAddress, contractName, "current-stage-start");
+  let currentStage = await extractValue(stacksApi, contractAddress, contractName, "current-stage");
 
   return {
     stages,
@@ -58,16 +52,8 @@ export async function fetchTokenSaleStages(
   };
 }
 
-export async function fetchTokenSaleUserData(
-  stacksApi: string,
-  contractAddress: string,
-  contractName: string,
-  user: string,
-  stage?: number
-): Promise<Array<TokenSalePurchase> | TokenSalePurchase> {
-  const functionArgs = stage
-    ? [`0x${serializeCV(uintCV(1))}`, `0x${serializeCV(principalCV(user))}`]
-    : [`0x${serializeCV(principalCV(user))}`];
+export async function fetchTokenSaleUserData(stacksApi: string, contractAddress: string, contractName: string, user: string, stage?: number): Promise<Array<TokenSalePurchase> | TokenSalePurchase> {
+  const functionArgs = stage ? [`0x${serializeCV(uintCV(1))}`, `0x${serializeCV(principalCV(user))}`] : [`0x${serializeCV(principalCV(user))}`];
   const data = {
     contractAddress,
     contractName,
