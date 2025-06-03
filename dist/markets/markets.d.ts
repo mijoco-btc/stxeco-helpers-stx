@@ -17,6 +17,7 @@ export type MarketData = {
     metadataHash: string;
     categories: Array<string | ScalarMarketDataItem>;
     stakes: Array<number>;
+    stakeTokens: Array<number>;
     resolutionState: number;
     resolutionBurnHeight?: number;
     marketStart?: number;
@@ -66,10 +67,12 @@ export type OpinionPoll = {
     };
 };
 export declare function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string): Promise<MarketData | undefined>;
+export declare function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string): Promise<number>;
 export type UserStake = {
     stakes: Array<number>;
 };
 export declare function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined>;
+export declare function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined>;
 export type MarketCategoricalOption = {
     label: string;
     displayName?: string;
@@ -117,6 +120,7 @@ export interface PredictionMarketCreateEvent extends BasicEvent {
     marketData: MarketData;
     priceOutcome?: number;
     stacksHeight?: number;
+    seedAmount?: number;
 }
 export interface PredictionMarketStakeEvent extends BasicEvent {
     marketId: number;
@@ -124,6 +128,8 @@ export interface PredictionMarketStakeEvent extends BasicEvent {
     amount: number;
     index: number;
     voter: string;
+    fee: number;
+    cost: number;
 }
 export interface TokenPermissionEvent extends BasicEvent {
     marketType: number;
@@ -136,12 +142,13 @@ export interface PredictionMarketClaimEvent extends BasicEvent {
     marketType: number;
     claimer: string;
     indexWon: number;
-    userStake: number;
-    userShare: number;
+    userTokensInOutcome: number;
+    userSharesInOutcome: number;
     winningPool: number;
     daoFee: number;
     marketFee: number;
     totalPool: ResolutionState;
+    netRefund: number;
 }
 export type TopMarket = {
     market: PredictionMarketCreateEvent;

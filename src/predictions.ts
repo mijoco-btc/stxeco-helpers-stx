@@ -20,7 +20,7 @@ export type PredictionContractData = {
   devFeeBips: number;
   daoFeeBips: number;
   marketFeeBipsMax: number;
-  marketCreateFee: number;
+  marketInitialLiquidity: number;
   devFund: string;
   daoTreasury: string;
   executiveSignalsRequired: number;
@@ -96,7 +96,7 @@ export async function readPredictionContractData(stacksApi: string, contractAddr
   let devFeeBips = await extractValue(stacksApi, contractAddress, contractName, "dev-fee-bips");
   let daoFeeBips = await extractValue(stacksApi, contractAddress, contractName, "dao-fee-bips");
   let marketFeeBipsMax = await extractValue(stacksApi, contractAddress, contractName, "market-fee-bips-max");
-  let marketCreateFee = await extractValue(stacksApi, contractAddress, contractName, "market-create-fee");
+  //let marketInitialLiquidity = await extractValue(stacksApi, contractAddress, contractName, "market-create-fee");
 
   let disputeWindowLength = await extractValue(stacksApi, contractAddress, contractName, "dispute-window-length");
   let resolutionAgent = await extractValue(stacksApi, contractAddress, contractName, "resolution-agent");
@@ -115,7 +115,7 @@ export async function readPredictionContractData(stacksApi: string, contractAddr
     devFeeBips,
     daoFeeBips,
     marketFeeBipsMax,
-    marketCreateFee,
+    marketInitialLiquidity: 100000000,
     disputeWindowLength,
     marketVotingDuration,
     resolutionAgent,

@@ -7,7 +7,7 @@ export type ReputationContractData = {
     rewardPerEpoch: number;
     currentEpoch: number;
     weightedSupply: number;
-    totalSupplies: Array<number>;
+    totalSupplies?: Array<number>;
     tierMetaData: Record<BigRepTier, {
         label: string;
         weight: number;

@@ -40,24 +40,31 @@ function fetchResolutionVote(stacksApi, marketContract, marketId, contractAddres
 }
 function extractValue(stacksApi, contractAddress, contractName, varName) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            let token = yield (0, stacks_node_1.fetchDataVar)(stacksApi, contractAddress, contractName, varName);
-            if (token.data && token.data === "0x04")
-                return false;
-            else if (token.data && token.data === "0x03")
-                return true;
-            const cv = (0, transactions_1.deserializeCV)(token.data).value;
-            if (typeof cv === "object") {
-                return cv.value.value;
-            }
-            else if (typeof cv === "bigint") {
-                return Number(cv);
-            }
-            return cv;
-        }
-        catch (err) {
-            return null;
-        }
+        const delayMs = 100;
+        return new Promise((resolve) => {
+            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    let token = yield (0, stacks_node_1.fetchDataVar)(stacksApi, contractAddress, contractName, varName);
+                    if (token.data && token.data === "0x04")
+                        return resolve(false);
+                    if (token.data && token.data === "0x03")
+                        return resolve(true);
+                    const cv = (0, transactions_1.deserializeCV)(token.data).value;
+                    if (typeof cv === "object") {
+                        resolve(cv.value.value);
+                    }
+                    else if (typeof cv === "bigint") {
+                        resolve(Number(cv));
+                    }
+                    else {
+                        resolve(cv);
+                    }
+                }
+                catch (err) {
+                    resolve(null);
+                }
+            }), delayMs);
+        });
     });
 }
 function readPredictionContractData(stacksApi, contractAddress, contractName) {
@@ -75,7 +82,7 @@ function readPredictionContractData(stacksApi, contractAddress, contractName) {
         let devFeeBips = yield extractValue(stacksApi, contractAddress, contractName, "dev-fee-bips");
         let daoFeeBips = yield extractValue(stacksApi, contractAddress, contractName, "dao-fee-bips");
         let marketFeeBipsMax = yield extractValue(stacksApi, contractAddress, contractName, "market-fee-bips-max");
-        let marketCreateFee = yield extractValue(stacksApi, contractAddress, contractName, "market-create-fee");
+        //let marketInitialLiquidity = await extractValue(stacksApi, contractAddress, contractName, "market-create-fee");
         let disputeWindowLength = yield extractValue(stacksApi, contractAddress, contractName, "dispute-window-length");
         let resolutionAgent = yield extractValue(stacksApi, contractAddress, contractName, "resolution-agent");
         let devFund = yield extractValue(stacksApi, contractAddress, contractName, "dev-fund");
@@ -92,7 +99,7 @@ function readPredictionContractData(stacksApi, contractAddress, contractName) {
             devFeeBips,
             daoFeeBips,
             marketFeeBipsMax,
-            marketCreateFee,
+            marketInitialLiquidity: 100000000,
             disputeWindowLength,
             marketVotingDuration,
             resolutionAgent,

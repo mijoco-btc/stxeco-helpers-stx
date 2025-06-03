@@ -14,8 +14,8 @@ export async function readReputationContractData(stacksApi: string, contractAddr
     tokenName,
     tokenSymbol,
     currentEpoch: await fetchCurrentEpoch(stacksApi, contractAddress, contractName),
-    weightedSupply: Number(await fetchWeightedSupply(stacksApi, contractAddress, contractName)),
-    totalSupplies: await fetchTotalSupplies(stacksApi, contractAddress, contractName),
+    weightedSupply: 0, //Number(await fetchWeightedSupply(stacksApi, contractAddress, contractName)),
+    totalSupplies: [], //await fetchTotalSupplies(stacksApi, contractAddress, contractName),
     tierMetaData: BigRepTierMetadata,
   };
 }
@@ -35,7 +35,7 @@ export type ReputationContractData = {
   rewardPerEpoch: number;
   currentEpoch: number;
   weightedSupply: number;
-  totalSupplies: Array<number>;
+  totalSupplies?: Array<number>;
   tierMetaData: Record<BigRepTier, { label: string; weight: number }>;
 };
 

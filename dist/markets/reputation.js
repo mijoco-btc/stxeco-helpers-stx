@@ -34,8 +34,8 @@ function readReputationContractData(stacksApi, contractAddress, contractName) {
             tokenName,
             tokenSymbol,
             currentEpoch: yield fetchCurrentEpoch(stacksApi, contractAddress, contractName),
-            weightedSupply: Number(yield fetchWeightedSupply(stacksApi, contractAddress, contractName)),
-            totalSupplies: yield fetchTotalSupplies(stacksApi, contractAddress, contractName),
+            weightedSupply: 0, //Number(await fetchWeightedSupply(stacksApi, contractAddress, contractName)),
+            totalSupplies: [], //await fetchTotalSupplies(stacksApi, contractAddress, contractName),
             tierMetaData: exports.BigRepTierMetadata,
         };
     });

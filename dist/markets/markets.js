@@ -11,7 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResolutionState = exports.MARKET_BINARY_OPTION = void 0;
 exports.fetchMarketData = fetchMarketData;
+exports.getCostPerShare = getCostPerShare;
 exports.fetchUserStake = fetchUserStake;
+exports.fetchUserTokens = fetchUserTokens;
 exports.marketDataToTupleCV = marketDataToTupleCV;
 exports.createBasicEvent = createBasicEvent;
 const transactions_1 = require("@stacks/transactions");
@@ -40,6 +42,7 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
                 }));
             }
             const stakes = result.value.value["stakes"].value.map((item) => Number(item.value));
+            const stakeTokens = result.value.value["stake-tokens"].value.map((item) => Number(item.value));
             let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
             let marketStart = type2 ? Number(result.value.value["market-start"].value) : undefined;
             let marketDuration = type2 ? Number(result.value.value["market-duration"].value) : undefined;
@@ -54,6 +57,7 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
                 marketFeeBips: Number(result.value.value["market-fee-bips"].value),
                 metadataHash: result.value.value["market-data-hash"].value,
                 stakes,
+                stakeTokens,
                 categories,
                 resolutionState: Number(result.value.value["resolution-state"].value),
                 resolutionBurnHeight,
@@ -68,6 +72,23 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
         }
     });
 }
+function getCostPerShare(stacksApi, marketId, outcome, amount, contractAddress, contractName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const data = {
+            contractAddress,
+            contractName,
+            functionName: "get-share-cost",
+            functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`, typeof outcome === "string" ? `0x${(0, transactions_1.serializeCV)((0, transactions_1.stringAsciiCV)(outcome))}` : `0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(outcome))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(amount))}`],
+        };
+        try {
+            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+            return result.value.value.cost.value;
+        }
+        catch (err) {
+            return -1;
+        }
+    });
+}
 function fetchUserStake(stacksApi, marketId, contractAddress, contractName, user) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -76,6 +97,29 @@ function fetchUserStake(stacksApi, marketId, contractAddress, contractName, user
                 contractAddress,
                 contractName,
                 functionName: "get-stake-balances",
+                functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`],
+            };
+            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+            const stakes = ((_a = result.value) === null || _a === void 0 ? void 0 : _a.value.map((item) => Number(item.value))) || undefined;
+            if (!result.value)
+                return;
+            return {
+                stakes,
+            };
+        }
+        catch (err) {
+            return;
+        }
+    });
+}
+function fetchUserTokens(stacksApi, marketId, contractAddress, contractName, user) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const data = {
+                contractAddress,
+                contractName,
+                functionName: "get-token-balances",
                 functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(marketId))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`],
             };
             const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);

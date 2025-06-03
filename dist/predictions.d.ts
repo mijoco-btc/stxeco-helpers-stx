@@ -17,7 +17,7 @@ export type PredictionContractData = {
     devFeeBips: number;
     daoFeeBips: number;
     marketFeeBipsMax: number;
-    marketCreateFee: number;
+    marketInitialLiquidity: number;
     devFund: string;
     daoTreasury: string;
     executiveSignalsRequired: number;

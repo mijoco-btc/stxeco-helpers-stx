@@ -21,6 +21,7 @@ export type MarketData = {
   metadataHash: string;
   categories: Array<string | ScalarMarketDataItem>;
   stakes: Array<number>;
+  stakeTokens: Array<number>;
   resolutionState: number;
   resolutionBurnHeight?: number;
   marketStart?: number;
@@ -93,6 +94,7 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
     }
 
     const stakes = result.value.value["stakes"].value.map((item: any) => Number(item.value));
+    const stakeTokens = result.value.value["stake-tokens"].value.map((item: any) => Number(item.value));
 
     let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
 
@@ -113,6 +115,7 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
       marketFeeBips: Number(result.value.value["market-fee-bips"].value),
       metadataHash: result.value.value["market-data-hash"].value,
       stakes,
+      stakeTokens,
       categories,
       resolutionState: Number(result.value.value["resolution-state"].value),
       resolutionBurnHeight,
@@ -126,6 +129,21 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
   }
 }
 
+export async function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string): Promise<number> {
+  const data = {
+    contractAddress,
+    contractName,
+    functionName: "get-share-cost",
+    functionArgs: [`0x${serializeCV(uintCV(marketId))}`, typeof outcome === "string" ? `0x${serializeCV(stringAsciiCV(outcome))}` : `0x${serializeCV(uintCV(outcome))}`, `0x${serializeCV(uintCV(amount))}`],
+  };
+  try {
+    const result = await callContractReadOnly(stacksApi, data);
+    return result.value.value.cost.value;
+  } catch (err: any) {
+    return -1;
+  }
+}
+
 export type UserStake = {
   stakes: Array<number>;
 };
@@ -136,6 +154,25 @@ export async function fetchUserStake(stacksApi: string, marketId: number, contra
       contractAddress,
       contractName,
       functionName: "get-stake-balances",
+      functionArgs: [`0x${serializeCV(uintCV(marketId))}`, `0x${serializeCV(principalCV(user))}`],
+    };
+    const result = await callContractReadOnly(stacksApi, data);
+    const stakes = result.value?.value.map((item: any) => Number(item.value)) || undefined;
+    if (!result.value) return;
+    return {
+      stakes,
+    };
+  } catch (err: any) {
+    return;
+  }
+}
+
+export async function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined> {
+  try {
+    const data = {
+      contractAddress,
+      contractName,
+      functionName: "get-token-balances",
       functionArgs: [`0x${serializeCV(uintCV(marketId))}`, `0x${serializeCV(principalCV(user))}`],
     };
     const result = await callContractReadOnly(stacksApi, data);
@@ -214,6 +251,7 @@ export interface PredictionMarketCreateEvent extends BasicEvent {
   marketData: MarketData;
   priceOutcome?: number;
   stacksHeight?: number;
+  seedAmount?: number;
 }
 
 export interface PredictionMarketStakeEvent extends BasicEvent {
@@ -222,6 +260,8 @@ export interface PredictionMarketStakeEvent extends BasicEvent {
   amount: number;
   index: number;
   voter: string;
+  fee: number;
+  cost: number;
 }
 
 export interface TokenPermissionEvent extends BasicEvent {
@@ -236,13 +276,15 @@ export interface PredictionMarketClaimEvent extends BasicEvent {
   marketType: number;
   claimer: string;
   indexWon: number;
-  userStake: number;
-  userShare: number;
+  userTokensInOutcome: number;
+  userSharesInOutcome: number;
   winningPool: number;
   daoFee: number;
   marketFee: number;
   totalPool: ResolutionState;
+  netRefund: number;
 }
+
 export type TopMarket = {
   market: PredictionMarketCreateEvent;
   totalStakes: number;
