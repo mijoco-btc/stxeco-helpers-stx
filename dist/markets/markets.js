@@ -16,8 +16,12 @@ exports.fetchUserStake = fetchUserStake;
 exports.fetchUserTokens = fetchUserTokens;
 exports.marketDataToTupleCV = marketDataToTupleCV;
 exports.createBasicEvent = createBasicEvent;
+exports.getArgsCV = getArgsCV;
+exports.getClarityProofForCreateMarket = getClarityProofForCreateMarket;
 const transactions_1 = require("@stacks/transactions");
 const stacks_node_1 = require("../stacks-node");
+const common_1 = require("@stacks/common");
+const gating_1 = require("../gating");
 function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c;
@@ -43,10 +47,10 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
             }
             const stakes = result.value.value["stakes"].value.map((item) => Number(item.value));
             const stakeTokens = result.value.value["stake-tokens"].value.map((item) => Number(item.value));
-            let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
-            let marketStart = type2 ? Number(result.value.value["market-start"].value) : undefined;
-            let marketDuration = type2 ? Number(result.value.value["market-duration"].value) : undefined;
-            let coolDownPeriod = type2 ? Number(result.value.value["cool-down-period"].value) : undefined;
+            let resolutionBurnHeight = Number(result.value.value["resolution-burn-height"].value);
+            let marketStart = Number(result.value.value["market-start"].value);
+            let marketDuration = Number(result.value.value["market-duration"].value);
+            let coolDownPeriod = Number(result.value.value["cool-down-period"].value);
             let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
             return {
                 concluded: Boolean(result.value.value.concluded.value),
@@ -165,4 +169,38 @@ function createBasicEvent(id, event, daoContract, extension, eventType) {
         daoContract,
         extension,
     };
+}
+function getArgsCV(gateKeeper, creationGated, token, treasury, stxAddress, marketFee, dataHash, marketInitialLiquidity, priceFeedIdOrCatData, hedgeStrategy) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const [contractAddress, contractName] = token.split(".");
+        if (!contractAddress || !contractName) {
+            throw new Error("Invalid token format. Expected 'address.contract-name'");
+        }
+        const marketFeeCV = marketFee === 0 ? (0, transactions_1.noneCV)() : (0, transactions_1.someCV)((0, transactions_1.uintCV)(marketFee * 100));
+        const hedgeCV = hedgeStrategy ? (0, transactions_1.contractPrincipalCV)(hedgeStrategy.split(".")[0], hedgeStrategy.split(".")[1]) : (0, transactions_1.noneCV)();
+        // Assumes `dataHash` is a 64-character hex string (32 bytes)
+        const metadataHash = (0, transactions_1.bufferCV)((0, common_1.hexToBytes)(dataHash));
+        let proof = creationGated ? yield getClarityProofForCreateMarket(gateKeeper, stxAddress) : transactions_1.Cl.list([]);
+        if (typeof priceFeedIdOrCatData === "string") {
+            console.log("priceFeedId ===> " + priceFeedIdOrCatData);
+            return [marketFeeCV, (0, transactions_1.contractPrincipalCV)(contractAddress, contractName), metadataHash, proof, (0, transactions_1.principalCV)(treasury), (0, transactions_1.noneCV)(), (0, transactions_1.noneCV)(), transactions_1.Cl.bufferFromHex(priceFeedIdOrCatData), (0, transactions_1.uintCV)(marketInitialLiquidity), hedgeCV];
+        }
+        else {
+            console.log("CatData ===> ", priceFeedIdOrCatData);
+            const cats = (0, transactions_1.listCV)(priceFeedIdOrCatData.map((o) => (0, transactions_1.stringAsciiCV)(o.label)));
+            return [cats, marketFeeCV, (0, transactions_1.contractPrincipalCV)(contractAddress, contractName), metadataHash, proof, (0, transactions_1.principalCV)(treasury), (0, transactions_1.noneCV)(), (0, transactions_1.noneCV)(), (0, transactions_1.uintCV)(marketInitialLiquidity), hedgeCV];
+        }
+    });
+}
+function getClarityProofForCreateMarket(gateKeeper, stxAddress) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // const path = `${bigMarketApi}/gating/create-market`;
+        // const response = await fetch(path);
+        // const gateKeeper = await response.json();
+        const { tree, root } = (0, gating_1.generateMerkleTreeUsingStandardPrincipal)(gateKeeper.merkleRootInput);
+        const { proof, valid } = (0, gating_1.generateMerkleProof)(tree, stxAddress);
+        if (!valid)
+            throw new Error("Invalid proof - user will be denied this operation in contract");
+        return (0, gating_1.proofToClarityValue)(proof);
+    });
 }

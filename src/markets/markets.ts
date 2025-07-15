@@ -1,5 +1,7 @@
-import { principalCV, serializeCV, stringAsciiCV, tupleCV, uintCV } from "@stacks/transactions";
+import { bufferCV, Cl, ClarityValue, contractPrincipalCV, ListCV, listCV, noneCV, principalCV, serializeCV, someCV, stringAsciiCV, tupleCV, uintCV } from "@stacks/transactions";
 import { callContractReadOnly } from "../stacks-node";
+import { hexToBytes } from "@stacks/common";
+import { GateKeeper, generateMerkleProof, generateMerkleTreeUsingStandardPrincipal, proofToClarityValue } from "../gating";
 
 export type ScalarMarketDataItem = {
   min: number;
@@ -96,13 +98,13 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
     const stakes = result.value.value["stakes"].value.map((item: any) => Number(item.value));
     const stakeTokens = result.value.value["stake-tokens"].value.map((item: any) => Number(item.value));
 
-    let resolutionBurnHeight = type2 ? undefined : Number(result.value.value["resolution-burn-height"].value);
+    let resolutionBurnHeight = Number(result.value.value["resolution-burn-height"].value);
 
-    let marketStart = type2 ? Number(result.value.value["market-start"].value) : undefined;
+    let marketStart = Number(result.value.value["market-start"].value);
 
-    let marketDuration = type2 ? Number(result.value.value["market-duration"].value) : undefined;
+    let marketDuration = Number(result.value.value["market-duration"].value);
 
-    let coolDownPeriod = type2 ? Number(result.value.value["cool-down-period"].value) : undefined;
+    let coolDownPeriod = Number(result.value.value["cool-down-period"].value);
 
     let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
 
@@ -442,4 +444,46 @@ export function createBasicEvent(id: string, event: any, daoContract: string, ex
     daoContract,
     extension,
   };
+}
+
+export async function getArgsCV(
+  gateKeeper: GateKeeper,
+  creationGated: boolean,
+  token: string,
+  treasury: string,
+  stxAddress: string,
+  marketFee: number,
+  dataHash: string,
+  marketInitialLiquidity: number,
+  priceFeedIdOrCatData: string | Array<MarketCategoricalOption>,
+  hedgeStrategy?: string
+): Promise<ClarityValue[]> {
+  const [contractAddress, contractName] = token.split(".");
+  if (!contractAddress || !contractName) {
+    throw new Error("Invalid token format. Expected 'address.contract-name'");
+  }
+
+  const marketFeeCV = marketFee === 0 ? noneCV() : someCV(uintCV(marketFee * 100));
+  const hedgeCV = hedgeStrategy ? contractPrincipalCV(hedgeStrategy.split(".")[0], hedgeStrategy.split(".")[1]) : noneCV();
+  // Assumes `dataHash` is a 64-character hex string (32 bytes)
+  const metadataHash = bufferCV(hexToBytes(dataHash));
+  let proof = creationGated ? await getClarityProofForCreateMarket(gateKeeper, stxAddress) : Cl.list([]);
+  if (typeof priceFeedIdOrCatData === "string") {
+    console.log("priceFeedId ===> " + priceFeedIdOrCatData);
+    return [marketFeeCV, contractPrincipalCV(contractAddress, contractName), metadataHash, proof, principalCV(treasury), noneCV(), noneCV(), Cl.bufferFromHex(priceFeedIdOrCatData), uintCV(marketInitialLiquidity), hedgeCV];
+  } else {
+    console.log("CatData ===> ", priceFeedIdOrCatData);
+    const cats = listCV(priceFeedIdOrCatData.map((o) => stringAsciiCV(o.label)));
+    return [cats, marketFeeCV, contractPrincipalCV(contractAddress, contractName), metadataHash, proof, principalCV(treasury), noneCV(), noneCV(), uintCV(marketInitialLiquidity), hedgeCV];
+  }
+}
+
+export async function getClarityProofForCreateMarket(gateKeeper: GateKeeper, stxAddress: string): Promise<ListCV<ClarityValue>> {
+  // const path = `${bigMarketApi}/gating/create-market`;
+  // const response = await fetch(path);
+  // const gateKeeper = await response.json();
+  const { tree, root } = generateMerkleTreeUsingStandardPrincipal(gateKeeper.merkleRootInput);
+  const { proof, valid } = generateMerkleProof(tree, stxAddress);
+  if (!valid) throw new Error("Invalid proof - user will be denied this operation in contract");
+  return proofToClarityValue(proof);
 }
