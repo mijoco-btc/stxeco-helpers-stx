@@ -43,6 +43,7 @@ export interface StoredOpinionPoll extends OpinionPoll {
   outcomes?: Array<string | ScalarMarketDataItem>;
   contractIds?: Array<string>;
   featured: boolean;
+  forumMessageId?: string;
 }
 export type OpinionPoll = {
   createdAt: number;
