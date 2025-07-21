@@ -238,6 +238,14 @@ export interface TokenSaleRefundEvent extends BasicEvent {
     refunded: number;
     stage: number;
 }
+export interface ReputationSetTierEvent extends BasicEvent {
+    weight: number;
+    tokenId: number;
+}
+export interface MarketPriceBandWidth extends BasicEvent {
+    feedId: string;
+    bandBips: number;
+}
 export interface ReputationBigClaimEvent extends BasicEvent {
     batched: boolean;
     user: string;
