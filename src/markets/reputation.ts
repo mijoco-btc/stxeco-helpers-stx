@@ -20,11 +20,15 @@ export async function readReputationContractData(stacksApi: string, contractAddr
   };
 }
 
+/**
+ * Note: in practice this is read from event data in mongo @see function getUserReputationContractData(address: string)
+ */
 export async function readUserReputationContractData(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<UserReputationContractData> {
   return {
     balances: await fetchBalances(stacksApi, contractAddress, contractName, address),
     overallBalance: await fetchOverallBalance(stacksApi, contractAddress, contractName, address),
     weightedReputation: await fetchWeightedReputation(stacksApi, contractAddress, contractName, address),
+    lastClaimedEpoch: await fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address),
   };
 }
 
@@ -43,6 +47,7 @@ export type UserReputationContractData = {
   balances: Array<number>;
   overallBalance: number;
   weightedReputation: number;
+  lastClaimedEpoch: number;
 };
 
 export enum BigRepTier {
@@ -138,6 +143,17 @@ export async function fetchWeightedReputation(stacksApi: string, contractAddress
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-weighted-rep",
+    functionArgs: [`0x${serializeCV(principalCV(address))}`],
+  };
+  const result = await callContractReadOnly(stacksApi, data);
+  return Number(result.value?.value || 0);
+}
+
+export async function fetchLastEpochClaimed(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any> {
+  const data = {
+    contractAddress: contractAddress,
+    contractName: contractName,
+    functionName: "get-last-claimed-epoch",
     functionArgs: [`0x${serializeCV(principalCV(address))}`],
   };
   const result = await callContractReadOnly(stacksApi, data);

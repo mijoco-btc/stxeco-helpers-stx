@@ -16,6 +16,7 @@ exports.fetchBalanceAtTier = fetchBalanceAtTier;
 exports.fetchBalances = fetchBalances;
 exports.fetchOverallBalance = fetchOverallBalance;
 exports.fetchWeightedReputation = fetchWeightedReputation;
+exports.fetchLastEpochClaimed = fetchLastEpochClaimed;
 exports.fetchCurrentEpoch = fetchCurrentEpoch;
 exports.fetchTotalSupplies = fetchTotalSupplies;
 exports.fetchWeightedSupply = fetchWeightedSupply;
@@ -40,12 +41,16 @@ function readReputationContractData(stacksApi, contractAddress, contractName) {
         };
     });
 }
+/**
+ * Note: in practice this is read from event data in mongo @see function getUserReputationContractData(address: string)
+ */
 function readUserReputationContractData(stacksApi, contractAddress, contractName, address) {
     return __awaiter(this, void 0, void 0, function* () {
         return {
             balances: yield fetchBalances(stacksApi, contractAddress, contractName, address),
             overallBalance: yield fetchOverallBalance(stacksApi, contractAddress, contractName, address),
             weightedReputation: yield fetchWeightedReputation(stacksApi, contractAddress, contractName, address),
+            lastClaimedEpoch: yield fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address),
         };
     });
 }
@@ -144,6 +149,19 @@ function fetchWeightedReputation(stacksApi, contractAddress, contractName, addre
             contractAddress: contractAddress,
             contractName: contractName,
             functionName: "get-weighted-rep",
+            functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
+        };
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        return Number(((_a = result.value) === null || _a === void 0 ? void 0 : _a.value) || 0);
+    });
+}
+function fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const data = {
+            contractAddress: contractAddress,
+            contractName: contractName,
+            functionName: "get-last-claimed-epoch",
             functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
         };
         const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);

@@ -1,4 +1,7 @@
 export declare function readReputationContractData(stacksApi: string, contractAddress: string, contractName: string): Promise<ReputationContractData>;
+/**
+ * Note: in practice this is read from event data in mongo @see function getUserReputationContractData(address: string)
+ */
 export declare function readUserReputationContractData(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<UserReputationContractData>;
 export type ReputationContractData = {
     overallSupply: number;
@@ -17,6 +20,7 @@ export type UserReputationContractData = {
     balances: Array<number>;
     overallBalance: number;
     weightedReputation: number;
+    lastClaimedEpoch: number;
 };
 export declare enum BigRepTier {
     Newcomer = 1,
@@ -38,6 +42,7 @@ export declare function fetchBalanceAtTier(stacksApi: string, contractAddress: s
 export declare function fetchBalances(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<number[]>;
 export declare function fetchOverallBalance(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any>;
 export declare function fetchWeightedReputation(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any>;
+export declare function fetchLastEpochClaimed(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any>;
 export declare function fetchCurrentEpoch(stacksApi: string, contractAddress: string, contractName: string): Promise<any>;
 export declare function fetchTotalSupplies(stacksApi: string, contractAddress: string, contractName: string): Promise<number[]>;
 export declare function fetchWeightedSupply(stacksApi: string, contractAddress: string, contractName: string): Promise<any>;
