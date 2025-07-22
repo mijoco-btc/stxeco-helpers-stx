@@ -467,6 +467,8 @@ export async function getArgsCV(
   dataHash: string,
   marketInitialLiquidity: number,
   priceFeedIdOrCatData: string | Array<MarketCategoricalOption>,
+  marketDuration: number,
+  coolDownDuration: number,
   hedgeStrategy?: string
 ): Promise<ClarityValue[]> {
   const [contractAddress, contractName] = token.split(".");
@@ -481,11 +483,22 @@ export async function getArgsCV(
   let proof = creationGated ? await getClarityProofForCreateMarket(gateKeeper, stxAddress) : Cl.list([]);
   if (typeof priceFeedIdOrCatData === "string") {
     console.log("priceFeedId ===> " + priceFeedIdOrCatData);
-    return [marketFeeCV, contractPrincipalCV(contractAddress, contractName), metadataHash, proof, principalCV(treasury), noneCV(), noneCV(), Cl.bufferFromHex(priceFeedIdOrCatData), uintCV(marketInitialLiquidity), hedgeCV];
+    return [
+      marketFeeCV,
+      contractPrincipalCV(contractAddress, contractName),
+      metadataHash,
+      proof,
+      principalCV(treasury),
+      someCV(uintCV(marketDuration)),
+      someCV(uintCV(coolDownDuration)),
+      Cl.bufferFromHex(priceFeedIdOrCatData),
+      uintCV(marketInitialLiquidity),
+      hedgeCV,
+    ];
   } else {
     console.log("CatData ===> ", priceFeedIdOrCatData);
     const cats = listCV(priceFeedIdOrCatData.map((o) => stringAsciiCV(o.label)));
-    return [cats, marketFeeCV, contractPrincipalCV(contractAddress, contractName), metadataHash, proof, principalCV(treasury), noneCV(), noneCV(), uintCV(marketInitialLiquidity), hedgeCV];
+    return [cats, marketFeeCV, contractPrincipalCV(contractAddress, contractName), metadataHash, proof, principalCV(treasury), someCV(uintCV(marketDuration)), someCV(uintCV(coolDownDuration)), uintCV(marketInitialLiquidity), hedgeCV];
   }
 }
 

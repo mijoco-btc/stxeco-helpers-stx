@@ -275,5 +275,5 @@ export interface LiquidityContributionEvent extends BasicEvent {
     amount: number;
 }
 export declare function createBasicEvent(id: string, event: any, daoContract: string, extension: string, eventType: string): BasicEvent;
-export declare function getArgsCV(gateKeeper: GateKeeper, creationGated: boolean, token: string, treasury: string, stxAddress: string, marketFee: number, dataHash: string, marketInitialLiquidity: number, priceFeedIdOrCatData: string | Array<MarketCategoricalOption>, hedgeStrategy?: string): Promise<ClarityValue[]>;
+export declare function getArgsCV(gateKeeper: GateKeeper, creationGated: boolean, token: string, treasury: string, stxAddress: string, marketFee: number, dataHash: string, marketInitialLiquidity: number, priceFeedIdOrCatData: string | Array<MarketCategoricalOption>, marketDuration: number, coolDownDuration: number, hedgeStrategy?: string): Promise<ClarityValue[]>;
 export declare function getClarityProofForCreateMarket(gateKeeper: GateKeeper, stxAddress: string): Promise<ListCV<ClarityValue>>;

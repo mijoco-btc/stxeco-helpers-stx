@@ -170,7 +170,7 @@ function createBasicEvent(id, event, daoContract, extension, eventType) {
         extension,
     };
 }
-function getArgsCV(gateKeeper, creationGated, token, treasury, stxAddress, marketFee, dataHash, marketInitialLiquidity, priceFeedIdOrCatData, hedgeStrategy) {
+function getArgsCV(gateKeeper, creationGated, token, treasury, stxAddress, marketFee, dataHash, marketInitialLiquidity, priceFeedIdOrCatData, marketDuration, coolDownDuration, hedgeStrategy) {
     return __awaiter(this, void 0, void 0, function* () {
         const [contractAddress, contractName] = token.split(".");
         if (!contractAddress || !contractName) {
@@ -183,12 +183,23 @@ function getArgsCV(gateKeeper, creationGated, token, treasury, stxAddress, marke
         let proof = creationGated ? yield getClarityProofForCreateMarket(gateKeeper, stxAddress) : transactions_1.Cl.list([]);
         if (typeof priceFeedIdOrCatData === "string") {
             console.log("priceFeedId ===> " + priceFeedIdOrCatData);
-            return [marketFeeCV, (0, transactions_1.contractPrincipalCV)(contractAddress, contractName), metadataHash, proof, (0, transactions_1.principalCV)(treasury), (0, transactions_1.noneCV)(), (0, transactions_1.noneCV)(), transactions_1.Cl.bufferFromHex(priceFeedIdOrCatData), (0, transactions_1.uintCV)(marketInitialLiquidity), hedgeCV];
+            return [
+                marketFeeCV,
+                (0, transactions_1.contractPrincipalCV)(contractAddress, contractName),
+                metadataHash,
+                proof,
+                (0, transactions_1.principalCV)(treasury),
+                (0, transactions_1.someCV)((0, transactions_1.uintCV)(marketDuration)),
+                (0, transactions_1.someCV)((0, transactions_1.uintCV)(coolDownDuration)),
+                transactions_1.Cl.bufferFromHex(priceFeedIdOrCatData),
+                (0, transactions_1.uintCV)(marketInitialLiquidity),
+                hedgeCV,
+            ];
         }
         else {
             console.log("CatData ===> ", priceFeedIdOrCatData);
             const cats = (0, transactions_1.listCV)(priceFeedIdOrCatData.map((o) => (0, transactions_1.stringAsciiCV)(o.label)));
-            return [cats, marketFeeCV, (0, transactions_1.contractPrincipalCV)(contractAddress, contractName), metadataHash, proof, (0, transactions_1.principalCV)(treasury), (0, transactions_1.noneCV)(), (0, transactions_1.noneCV)(), (0, transactions_1.uintCV)(marketInitialLiquidity), hedgeCV];
+            return [cats, marketFeeCV, (0, transactions_1.contractPrincipalCV)(contractAddress, contractName), metadataHash, proof, (0, transactions_1.principalCV)(treasury), (0, transactions_1.someCV)((0, transactions_1.uintCV)(marketDuration)), (0, transactions_1.someCV)((0, transactions_1.uintCV)(coolDownDuration)), (0, transactions_1.uintCV)(marketInitialLiquidity), hedgeCV];
         }
     });
 }
