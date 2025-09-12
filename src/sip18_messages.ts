@@ -20,7 +20,11 @@ import {
 } from "@stacks/transactions";
 import { bytesToHex, hexToBytes } from "@stacks/common";
 import { ChainId } from "@stacks/network";
-import { SignatureData } from "@stacks/connect";
+
+export interface SignatureData {
+  signature: string;
+  publicKey: string;
+}
 
 export interface StoredVoteMessage extends VoteMessage {
   _id?: string;

@@ -47,12 +47,7 @@ exports.getBalances = getBalances;
 exports.isSTX = isSTX;
 exports.fullBalanceAtHeight = fullBalanceAtHeight;
 exports.fullBalanceInSip10Token = fullBalanceInSip10Token;
-exports.isXverse = isXverse;
-exports.isHiro = isHiro;
-exports.isAsigna = isAsigna;
-exports.isLeather = isLeather;
 exports.appDetails = appDetails;
-exports.getStacksAddress = getStacksAddress;
 exports.checkAddressForNetwork = checkAddressForNetwork;
 exports.decodeStacksAddress = decodeStacksAddress;
 exports.encodeStacksAddress = encodeStacksAddress;
@@ -63,21 +58,12 @@ exports.isLegal = isLegal;
 exports.verifyAmount = verifyAmount;
 exports.verifySBTCAmount = verifySBTCAmount;
 exports.initAddresses = initAddresses;
-exports.initApplication = initApplication;
 exports.defaultSettings = defaultSettings;
 exports.defaultExchangeRate = defaultExchangeRate;
-const connect_1 = require("@stacks/connect");
 const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
 const stacks_node_1 = require("../stacks-node");
 const btc = __importStar(require("@scure/btc-signer"));
-function getProvider() {
-    const provider = (0, connect_1.getStacksProvider)();
-    const prod = provider.getProductInfo ? provider.getProductInfo() : undefined;
-    if (!prod)
-        throw new Error("Provider not found");
-    return prod;
-}
 function getBalances(stacksApi, mempoolApi, contractId, stxAddress, cardinal, ordinal) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -142,33 +128,11 @@ function fullBalanceInSip10Token(stacksApi, stxAddress, tokenContract) {
         return totalBalanceAtHeight;
     });
 }
-function isXverse() {
-    //const prov1 = (window as any).LeatherProvider //getProvider()
-    //const prov2 = (window as any).XverseProvider //getProvider()
-    const xverse = getProvider().name.toLowerCase().indexOf("xverse") > -1;
-    return xverse;
-}
-function isHiro() {
-    return getProvider().name.toLowerCase().indexOf("hiro") > -1;
-}
-function isAsigna() {
-    return getProvider().name.toLowerCase().indexOf("asigna") > -1;
-}
-function isLeather() {
-    return getProvider().name.toLowerCase().indexOf("leather") > -1;
-}
 function appDetails() {
     return {
         name: "stxeco-launcher",
         icon: window ? window.location.origin + "/img/stx_eco_logo_icon_white.png" : "/img/stx_eco_logo_icon_white.png",
     };
-}
-function getStacksAddress(network, userData) {
-    if (userData) {
-        const stxAddress = network === "testnet" || network === "devnet" ? userData.profile.stxAddress.testnet : userData.profile.stxAddress.mainnet;
-        return stxAddress;
-    }
-    return;
 }
 function checkAddressForNetwork(net, address) {
     if (!address || typeof address !== "string")
@@ -249,98 +213,6 @@ exports.REGTEST_NETWORK = {
     scriptHash: 0xc4,
     wif: 0xc4,
 };
-function addresses(network, userData, callback) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!userData)
-            return {};
-        //let something = hashP2WPKH(payload.public_keys[0])
-        const stxAddress = userData ? getStacksAddress(network, userData) : undefined;
-        let ordinal = "unknown";
-        let cardinal = "unknown";
-        let btcPubkeySegwit0 = "unknown";
-        let btcPubkeySegwit1 = "unknown";
-        try {
-            if (!userData.profile.btcAddress) {
-                // asigna
-                callback({
-                    network,
-                    stxAddress,
-                    cardinal: "unknown",
-                    ordinal: "unknown",
-                    btcPubkeySegwit0: "unknown",
-                    btcPubkeySegwit1: "unknown",
-                    sBTCBalance: 0,
-                    stxBalance: 0,
-                });
-            }
-            else if (userData && typeof userData.profile.btcAddress === "string") {
-                // xverse
-                callback({
-                    network,
-                    stxAddress,
-                    cardinal: userData.profile.btcAddress,
-                    ordinal: "unknown",
-                    btcPubkeySegwit0: "unknown",
-                    btcPubkeySegwit1: "unknown",
-                    sBTCBalance: 0,
-                    stxBalance: 0,
-                });
-            }
-            else {
-                try {
-                    if (userData) {
-                        ordinal = userData.profile.btcAddress.p2tr.regtest;
-                        cardinal = userData.profile.btcAddress.p2wpkh.regtest;
-                        if (network === "mainnet") {
-                            ordinal = userData.profile.btcAddress.p2tr.mainnet;
-                            cardinal = userData.profile.btcAddress.p2wpkh.mainnet;
-                        }
-                        else if (network === "devnet") {
-                            ordinal = userData.profile.btcAddress.p2tr.regtest;
-                            cardinal = userData.profile.btcAddress.p2wpkh.regtest;
-                        }
-                        else if (network === "signet") {
-                            ordinal = userData.profile.btcAddress.p2tr.signet;
-                            cardinal = userData.profile.btcAddress.p2wpkh.signet;
-                        }
-                        btcPubkeySegwit0 = userData.profile.btcPublicKey.p2wpkh;
-                        btcPubkeySegwit1 = userData.profile.btcPublicKey.p2tr;
-                    }
-                }
-                catch (err) {
-                    //
-                }
-                if (userData && userData.profile.btcAddress) {
-                    callback({
-                        network,
-                        stxAddress,
-                        cardinal,
-                        ordinal,
-                        btcPubkeySegwit0,
-                        btcPubkeySegwit1,
-                        sBTCBalance: 0,
-                        stxBalance: 0,
-                    });
-                }
-                else {
-                    callback({
-                        network,
-                        stxAddress,
-                        cardinal: "unknown",
-                        ordinal: "unknown",
-                        btcPubkeySegwit0: "unknown",
-                        btcPubkeySegwit1: "unknown",
-                        sBTCBalance: 0,
-                        stxBalance: 0,
-                    });
-                }
-            }
-        }
-        catch (err) {
-            console.log("addresses: ", err);
-        }
-    });
-}
 function makeFlash(el1) {
     let count = 0;
     if (!el1)
@@ -411,50 +283,6 @@ function initAddresses(sessionStore) {
         conf.exchangeRates = [];
         conf.userSettings = {};
         return conf;
-    });
-}
-function initApplication(stacksApi, mempoolApi, network, sessionStore, exchangeRates, ftContract, userData) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const stacksInfo = (yield (0, stacks_node_1.fetchStacksInfo)(stacksApi)) || {};
-            const poxInfo = yield (0, stacks_node_1.getPoxInfo)(stacksApi);
-            const settings = sessionStore.userSettings || defaultSettings();
-            const rateNow = (exchangeRates === null || exchangeRates === void 0 ? void 0 : exchangeRates.find((o) => o.currency === "USD")) || { currency: "USD" };
-            settings.currency = {
-                myFiatCurrency: rateNow || defaultExchangeRate(),
-                cryptoFirst: true,
-                denomination: "USD",
-            };
-            sessionStore.update((conf) => {
-                conf.stacksInfo = stacksInfo;
-                conf.poxInfo = poxInfo;
-                conf.loggedIn = false;
-                conf.exchangeRates = exchangeRates || [];
-                conf.userSettings = settings;
-                return conf;
-            });
-            if (userData) {
-                yield addresses(network, userData, function (obj) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        var _a, _b;
-                        console.log("in callback");
-                        obj.tokenBalances = yield (0, stacks_node_1.getTokenBalances)(stacksApi, obj.stxAddress);
-                        obj.sBTCBalance = Number(((_b = (_a = obj.tokenBalances) === null || _a === void 0 ? void 0 : _a.fungible_tokens[ftContract + "::sbtc"]) === null || _b === void 0 ? void 0 : _b.balance) || 0);
-                        obj.walletBalances = yield (0, custom_node_1.getWalletBalances)(stacksApi, mempoolApi, obj.stxAddress, obj.cardinal, obj.ordinal);
-                        sessionStore.update((conf) => {
-                            conf.loggedIn = false;
-                            conf.keySets[network] = obj;
-                            conf.exchangeRates = exchangeRates || [];
-                            conf.userSettings = settings;
-                            return conf;
-                        });
-                    });
-                });
-            }
-        }
-        catch (err) {
-            initAddresses(sessionStore);
-        }
     });
 }
 function defaultSettings() {

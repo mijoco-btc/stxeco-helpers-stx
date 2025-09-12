@@ -1,5 +1,8 @@
 import { ClarityValue, type TupleCV, type TupleData } from "@stacks/transactions";
-import { SignatureData } from "@stacks/connect";
+export interface SignatureData {
+    signature: string;
+    publicKey: string;
+}
 export interface StoredVoteMessage extends VoteMessage {
     _id?: string;
     voteObjectHash: string;

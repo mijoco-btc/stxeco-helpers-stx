@@ -1,19 +1,13 @@
-import { UserData } from "@stacks/connect";
 import { AddressObject, ExchangeRate, SbtcUserSettingI } from "../sbtc";
 import * as btc from "@scure/btc-signer";
 export declare function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
 export declare function isSTX(token: string): boolean;
 export declare function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number): Promise<number>;
 export declare function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string): Promise<number>;
-export declare function isXverse(): boolean;
-export declare function isHiro(): boolean;
-export declare function isAsigna(): boolean;
-export declare function isLeather(): boolean;
 export declare function appDetails(): {
     name: string;
     icon: string;
 };
-export declare function getStacksAddress(network: string, userData: UserData): any;
 export declare function checkAddressForNetwork(net: string, address: string | undefined): void;
 export declare function decodeStacksAddress(stxAddress: string): [number, string];
 export declare function encodeStacksAddress(network: string, b160Address: string): string;
@@ -25,6 +19,5 @@ export declare function isLegal(routeId: string): boolean;
 export declare function verifyAmount(amount: number, balance: number): void;
 export declare function verifySBTCAmount(amount: number, balance: number, fee: number): void;
 export declare function initAddresses(sessionStore: any): void;
-export declare function initApplication(stacksApi: string, mempoolApi: string, network: string, sessionStore: any, exchangeRates: Array<ExchangeRate>, ftContract: string, userData: UserData | undefined): Promise<void>;
 export declare function defaultSettings(): SbtcUserSettingI;
 export declare function defaultExchangeRate(): ExchangeRate;
