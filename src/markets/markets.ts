@@ -272,6 +272,7 @@ export interface TokenPermissionEvent extends BasicEvent {
   allowed: boolean;
   token: string;
   sip10Data?: Sip10Data;
+  minLiquidity?: number;
 }
 
 export interface PredictionMarketClaimEvent extends BasicEvent {
