@@ -254,6 +254,33 @@ export interface ReputationBigClaimEvent extends BasicEvent {
     amount: number;
     rewardPerEpoch: number;
 }
+export interface PerformCustomHedgeEvent extends BasicEvent {
+    marketId: number;
+    predictedIndex: number;
+}
+export interface PerformSwapHedgeEvent extends BasicEvent {
+    marketId: number;
+    predictedIndex: number;
+    feedId: string;
+}
+export interface SwapTokenPairHedgeEvent extends BasicEvent {
+    marketId: number;
+    predictedIndex: number;
+    feedId: string;
+    tokenIn: string;
+    tokenOut: string;
+    token0: string;
+    token1: string;
+}
+export interface ScalarContractHedgeEvent extends BasicEvent {
+    marketContract: string;
+}
+export interface MarketContractHedgeEvent extends BasicEvent {
+    marketContract: string;
+}
+export interface MultipliersHedgeEvent extends BasicEvent {
+    multipliers: Array<number>;
+}
 export interface ReputationSftTransferEvent extends BasicEvent {
     tokenId: number;
     sender: string;

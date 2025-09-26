@@ -259,6 +259,8 @@ export type ExchangeRate = {
   stxToBtc: number;
   ethToBtc: number;
   solToBtc: number;
+  suiToBtc: number;
+  tonToBtc: number;
 };
 
 export type AuthorisationDataType = {

@@ -311,5 +311,7 @@ function defaultExchangeRate() {
         stxToBtc: 0.00000983,
         ethToBtc: 0,
         solToBtc: 0,
+        suiToBtc: 0,
+        tonToBtc: 0,
     };
 }
