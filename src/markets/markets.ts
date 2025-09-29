@@ -7,10 +7,16 @@ export type ScalarMarketDataItem = {
   min: number;
   max: number;
 };
-export type Criterion = {
+export type CriterionSources = {
   criteria: string;
-  resolvesAt: number;
   sources: Array<string>;
+};
+
+export type CriterionDays = {
+  duration: number;
+  coolDown: number;
+  startHeight: number;
+  earliest_resolution_date?: string;
 };
 
 export type MarketData = {
@@ -47,8 +53,6 @@ export interface StoredOpinionPoll extends OpinionPoll {
 }
 export type OpinionPoll = {
   createdAt: number;
-  startBurnHeight: number;
-  endBurnHeight: number;
   priceFeedId?: string;
   marketType: number;
   marketFee: number;
@@ -57,7 +61,9 @@ export type OpinionPoll = {
   name: string;
   description: string;
   category: string;
-  criterion: Criterion;
+  liquidity: number;
+  criterionSources: CriterionSources;
+  criterionDays: CriterionDays;
   logo: string;
   proposer: string;
   token: string;
