@@ -52,6 +52,7 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
             let marketDuration = Number(result.value.value["market-duration"].value);
             let coolDownPeriod = Number(result.value.value["cool-down-period"].value);
             let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
+            let startPrice = type2 ? result.value.value["start-price"].value : undefined;
             return {
                 concluded: Boolean(result.value.value.concluded.value),
                 creator: result.value.value.creator.value,
@@ -69,6 +70,7 @@ function fetchMarketData(stacksApi, marketId, contractAddress, contractName) {
                 marketDuration,
                 priceFeedId,
                 coolDownPeriod,
+                startPrice,
             };
         }
         catch (err) {

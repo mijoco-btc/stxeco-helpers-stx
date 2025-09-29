@@ -32,6 +32,7 @@ export type MarketData = {
     coolDownPeriod?: number;
     priceFeedId?: string;
     priceOutcome?: string;
+    startPrice?: number;
 };
 export interface StoredOpinionPoll extends OpinionPoll {
     _id?: string;

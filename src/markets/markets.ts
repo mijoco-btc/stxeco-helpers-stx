@@ -37,6 +37,7 @@ export type MarketData = {
   coolDownPeriod?: number;
   priceFeedId?: string;
   priceOutcome?: string;
+  startPrice?: number;
 };
 
 export interface StoredOpinionPoll extends OpinionPoll {
@@ -115,6 +116,8 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
 
     let priceFeedId = type2 ? result.value.value["price-feed-id"].value : undefined;
 
+    let startPrice = type2 ? result.value.value["start-price"].value : undefined;
+
     return {
       concluded: Boolean(result.value.value.concluded.value),
       creator: result.value.value.creator.value,
@@ -132,6 +135,7 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
       marketDuration,
       priceFeedId,
       coolDownPeriod,
+      startPrice,
     };
   } catch (err: any) {
     return undefined;
