@@ -6,7 +6,7 @@ import * as btc from "@scure/btc-signer";
 import { SessionStore } from "../stxeco_types";
 import { PoxInfo, StacksInfo } from "../pox_types";
 
-export async function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject> {
+export async function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string, stacksHiroKey?: string): Promise<AddressObject> {
   let result = {} as AddressObject;
   try {
     result.tokenBalances = await getTokenBalances(stacksApi, stxAddress);
@@ -26,7 +26,7 @@ export function isSTX(token: string) {
   return token.indexOf("stx") > -1;
 }
 
-export async function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number): Promise<number> {
+export async function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number, stacksHiroKey?: string): Promise<number> {
   let totalBalanceAtHeight = 0;
   try {
     const response = await getBalanceAtHeight(stacksApi, stxAddress);
@@ -38,7 +38,7 @@ export async function fullBalanceAtHeight(stacksApi: string, stxAddress: string,
   return totalBalanceAtHeight;
 }
 
-export async function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string): Promise<number> {
+export async function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string, stacksHiroKey?: string): Promise<number> {
   let totalBalanceAtHeight = 0;
   try {
     if (isSTX(tokenContract)) return fullBalanceAtHeight(stacksApi, stxAddress);

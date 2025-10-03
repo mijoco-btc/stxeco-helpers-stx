@@ -3,31 +3,16 @@
  */
 import { principalCV, serializeCV } from "@stacks/transactions";
 import { hex } from "@scure/base";
-import {
-  AddressMempoolObject,
-  AddressObject,
-  BalanceI,
-  SbtcContractDataType,
-} from "../sbtc";
+import { AddressMempoolObject, AddressObject, BalanceI, SbtcContractDataType } from "../sbtc";
 import { getNet } from "../account";
 import * as btc from "@scure/btc-signer";
 import { callContractReadOnly } from "../stacks-node";
 
 const limit = 10;
 
-const noArgMethods = [
-  "get-bitcoin-wallet-public-key",
-  "get-token-uri",
-  "get-total-supply",
-  "get-decimals",
-  "get-name",
-];
+const noArgMethods = ["get-bitcoin-wallet-public-key", "get-token-uri", "get-total-supply", "get-decimals", "get-name"];
 
-export async function fetchNoArgsReadOnly(
-  stacksApi: string,
-  network: string,
-  contractId: string
-): Promise<SbtcContractDataType> {
+export async function fetchNoArgsReadOnly(stacksApi: string, network: string, contractId: string, stacksHiroKey?: string): Promise<SbtcContractDataType> {
   const result = {} as SbtcContractDataType;
   if (!contractId || contractId.length === 0) return {} as SbtcContractDataType;
 
@@ -44,24 +29,17 @@ export async function fetchNoArgsReadOnly(
     let response;
     try {
       data.functionName = funcname;
-      response = await callContractReadOnly(stacksApi, data);
+      response = await callContractReadOnly(stacksApi, data, stacksHiroKey);
       resolveArg(network, result, response, funcname);
     } catch (err: any) {
-      console.log(
-        "Error fetching sbtc alpha data from sbtc contract arg: " + funcname
-      );
+      console.log("Error fetching sbtc alpha data from sbtc contract arg: " + funcname);
     }
   }
   result.contractId = contractId;
   return result;
 }
 
-function resolveArg(
-  network: string,
-  result: SbtcContractDataType,
-  response: any,
-  arg: string
-) {
+function resolveArg(network: string, result: SbtcContractDataType, response: any, arg: string) {
   let current = response;
   if (response.value && response.value.value) {
     current = response.value.value;
@@ -71,10 +49,7 @@ function resolveArg(
       //console.log('get-bitcoin-wallet-public-key: response: ', response)
       try {
         const fullPK = response.value.value.split("x")[1];
-        result.sbtcWalletAddress = getPegWalletAddressFromPublicKey(
-          network,
-          fullPK
-        );
+        result.sbtcWalletAddress = getPegWalletAddressFromPublicKey(network, fullPK);
         result.sbtcWalletPublicKey = fullPK;
         // converting to x-only..
         //result.sbtcWalletPublicKey = fullPK;
@@ -119,11 +94,7 @@ function resolveArg(
   }
 }
 
-export async function fetchSbtcWalletAddress(
-  stacksApi: string,
-  network: string,
-  contractId: string
-) {
+export async function fetchSbtcWalletAddress(stacksApi: string, network: string, contractId: string, stacksHiroKey?: string) {
   try {
     if (!contractId || contractId.length === 0) return;
     const data = {
@@ -133,7 +104,7 @@ export async function fetchSbtcWalletAddress(
       functionArgs: [],
       network,
     };
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     if (result.value && result.value.value) {
       return result.value.value;
     }
@@ -146,12 +117,7 @@ export async function fetchSbtcWalletAddress(
   }
 }
 
-export async function fetchUserSbtcBalance(
-  stacksApi: string,
-  network: string,
-  contractId: string,
-  stxAddress: string
-): Promise<BalanceI> {
+export async function fetchUserSbtcBalance(stacksApi: string, network: string, contractId: string, stxAddress: string, stacksHiroKey?: string): Promise<BalanceI> {
   try {
     if (!contractId || contractId.length === 0) return { balance: 0 };
     const functionArgs = [`0x${serializeCV(principalCV(stxAddress))}`];
@@ -162,7 +128,7 @@ export async function fetchUserSbtcBalance(
       functionArgs,
       network,
     };
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     if (result.value && result.value.value) {
       return { balance: Number(result.value.value) };
     }
@@ -172,13 +138,7 @@ export async function fetchUserSbtcBalance(
   }
 }
 
-export async function fetchUserBalances(
-  stacksApi: string,
-  mempoolApi: string,
-  stxAddress: string,
-  cardinal: string,
-  ordinal: string
-): Promise<AddressObject> {
+export async function fetchUserBalances(stacksApi: string, mempoolApi: string, stxAddress: string, cardinal: string, ordinal: string, stacksHiroKey?: string): Promise<AddressObject> {
   const userBalances: AddressObject = {} as AddressObject;
   userBalances.stxAddress = stxAddress;
   userBalances.cardinal = cardinal;
@@ -189,7 +149,9 @@ export async function fetchUserBalances(
     //checkAddressForNetwork(getConfig().network, ordinal)
     if (userBalances.stxAddress) {
       const url = `${stacksApi}/extended/v1/address/${userBalances.stxAddress}/balances`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+      });
       const result: any = await response.json();
       userBalances.tokenBalances = result;
     }
@@ -199,7 +161,9 @@ export async function fetchUserBalances(
   // fetch bns info
   try {
     const url = `${stacksApi}/v1/addresses/stacks/${stxAddress}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+    });
     const result: any = await response.json();
     userBalances.bnsNameInfo = result;
   } catch (err: any) {
@@ -208,20 +172,14 @@ export async function fetchUserBalances(
   }
   try {
     //checkAddressForNetwork(getConfig().network, userBalances.cardinal)
-    const address: AddressMempoolObject = await fetchAddress(
-      mempoolApi,
-      userBalances.cardinal
-    );
+    const address: AddressMempoolObject = await fetchAddress(mempoolApi, userBalances.cardinal);
     userBalances.cardinalInfo = address;
   } catch (err: any) {
     console.log("fetchUserBalances: cardinalInfo: " + err.message);
   }
   try {
     //checkAddressForNetwork(getConfig().network, userBalances.cardinal)
-    const address: AddressMempoolObject = await fetchAddress(
-      mempoolApi,
-      userBalances.ordinal
-    );
+    const address: AddressMempoolObject = await fetchAddress(mempoolApi, userBalances.ordinal);
     userBalances.ordinalInfo = address;
   } catch (err: any) {
     console.log("fetchUserBalances: ordinalInfo: " + err.message);
@@ -229,20 +187,16 @@ export async function fetchUserBalances(
   return userBalances;
 }
 
-export async function fetchAddress(
-  mempoolUrl: string,
-  address: string
-): Promise<AddressMempoolObject> {
+export async function fetchAddress(mempoolUrl: string, address: string, stacksHiroKey?: string): Promise<AddressMempoolObject> {
   const url = `${mempoolUrl}/address/${address}`;
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+  });
   const result = await response.json();
   return result;
 }
 
-export function getPegWalletAddressFromPublicKey(
-  network: string,
-  sbtcWalletPublicKey: string
-) {
+export function getPegWalletAddressFromPublicKey(network: string, sbtcWalletPublicKey: string) {
   if (!sbtcWalletPublicKey) return;
   let net = getNet(network);
   //if (network === 'development' || network === 'simnet') {

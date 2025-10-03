@@ -14,7 +14,7 @@ exports.fetchTokenSaleUserData = fetchTokenSaleUserData;
 const transactions_1 = require("@stacks/transactions");
 const stacks_node_1 = require("./stacks-node");
 const predictions_1 = require("./predictions");
-function fetchTokenSaleStages(stacksApi, contractAddress, contractName) {
+function fetchTokenSaleStages(stacksApi, contractAddress, contractName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const data = {
             contractAddress,
@@ -22,7 +22,7 @@ function fetchTokenSaleStages(stacksApi, contractAddress, contractName) {
             functionName: "get-ido-stages",
             functionArgs: [],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         const stages = result.value.map((stage) => {
             var _a, _b, _c, _d;
             if (stage === null || stage === void 0 ? void 0 : stage.value) {
@@ -51,7 +51,7 @@ function fetchTokenSaleStages(stacksApi, contractAddress, contractName) {
         };
     });
 }
-function fetchTokenSaleUserData(stacksApi, contractAddress, contractName, user, stage) {
+function fetchTokenSaleUserData(stacksApi, contractAddress, contractName, user, stage, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const functionArgs = stage ? [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(1))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`] : [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(user))}`];
@@ -61,7 +61,7 @@ function fetchTokenSaleUserData(stacksApi, contractAddress, contractName, user, 
             functionName: stage ? "get-ido-user-for-stage" : "get-ido-user",
             functionArgs,
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         const purchases = ((_a = result === null || result === void 0 ? void 0 : result.value) === null || _a === void 0 ? void 0 : _a.map((stage) => {
             if (stage) {
                 return {

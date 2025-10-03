@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletBalances = getWalletBalances;
 exports.getBalanceAtHeight = getBalanceAtHeight;
 const sbtc_contract_1 = require("../sbtc-contract");
-function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal) {
+function getWalletBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
         const rawBal = yield (0, sbtc_contract_1.fetchUserBalances)(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
@@ -36,10 +36,9 @@ function extractBtcBalance(addressMempoolObject) {
     var _a;
     if (!addressMempoolObject)
         return 0;
-    return (((_a = addressMempoolObject === null || addressMempoolObject === void 0 ? void 0 : addressMempoolObject.chain_stats) === null || _a === void 0 ? void 0 : _a.funded_txo_sum) -
-        addressMempoolObject.chain_stats.spent_txo_sum || 0);
+    return ((_a = addressMempoolObject === null || addressMempoolObject === void 0 ? void 0 : addressMempoolObject.chain_stats) === null || _a === void 0 ? void 0 : _a.funded_txo_sum) - addressMempoolObject.chain_stats.spent_txo_sum || 0;
 }
-function getBalanceAtHeight(stacksApi, stxAddress, height) {
+function getBalanceAtHeight(stacksApi, stxAddress, height, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!stxAddress)
             return {
@@ -53,7 +52,9 @@ function getBalanceAtHeight(stacksApi, stxAddress, height) {
             url += `?until_block=${height}`;
         let val;
         try {
-            const response = yield fetch(url);
+            const response = yield fetch(url, {
+                headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+            });
             val = yield response.json();
         }
         catch (err) {

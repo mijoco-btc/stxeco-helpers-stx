@@ -26,14 +26,14 @@ export type StacksAsset = {
   };
 };
 
-export async function fetchContractAssets(stacksApi: string, principal: string): Promise<ContractAssets> {
+export async function fetchContractAssets(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractAssets> {
   const path = `${stacksApi}/extended/v1/address/${principal}/assets`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
 
-export async function fetchSip10(stacksApi: string, principal: string): Promise<ContractAssets> {
+export async function fetchSip10(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractAssets> {
   const path = `${stacksApi}/extended/v1/address/${principal}/assets`;
   const response = await fetch(path);
   const res = await response.json();
@@ -59,25 +59,27 @@ export type ContractStxBalance = {
   total_sent: string;
 };
 
-export async function fetchContractBalances(stacksApi: string, principal: string): Promise<ContractBalances> {
+export async function fetchContractBalances(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractBalances> {
   const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
 
-export async function fetchContractStxBalance(stacksApi: string, principal: string): Promise<ContractStxBalance> {
+export async function fetchContractStxBalance(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractStxBalance> {
   const path = `${stacksApi}/extended/v1/address/${principal}/stx`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
 
-export async function getTransaction(stacksApi: string, tx: string): Promise<any> {
+export async function getTransaction(stacksApi: string, tx: string, stacksHiroKey?: string): Promise<any> {
   const url = `${stacksApi}/extended/v1/tx/${tx}`;
   let val;
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+    });
     val = await response.json();
   } catch (err) {
     console.log("getTransaction: ", err);
@@ -85,11 +87,13 @@ export async function getTransaction(stacksApi: string, tx: string): Promise<any
   return val;
 }
 
-export async function fetchDataVar(stacksApi: string, contractAddress: string, contractName: string, dataVarName: string) {
+export async function fetchDataVar(stacksApi: string, contractAddress: string, contractName: string, dataVarName: string, stacksHiroKey?: string) {
   try {
     //checkAddressForNetwork(getConfig().network, contractAddress)
     const url = `${stacksApi}/v2/data_var/${contractAddress}/${contractName}/${dataVarName}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+    });
     const result = await response.json();
     return result;
   } catch (err) {
@@ -97,13 +101,13 @@ export async function fetchDataVar(stacksApi: string, contractAddress: string, c
   }
 }
 
-export async function fetchMapEntry(stacksApi: string, contractAddress: string, contractName: string, mapName: string, lookupKey: ClarityValue) {
+export async function fetchMapEntry(stacksApi: string, contractAddress: string, contractName: string, mapName: string, lookupKey: ClarityValue, stacksHiroKey?: string) {
   try {
     //checkAddressForNetwork(getConfig().network, contractAddress)
     const url = `${stacksApi}/v2/map_entry/${contractAddress}/${contractName}/${mapName}`;
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "" },
+      headers: { "Content-Type": "application/json", Authorization: "", ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
       body: serializeCV(lookupKey),
     });
     const result = await response.json();
@@ -130,32 +134,36 @@ export function getStacksNetwork(network: string) {
   return stxNetwork;
 }
 
-export async function lookupContract(stacksApi: string, contract_id: string) {
+export async function lookupContract(stacksApi: string, contract_id: string, stacksHiroKey?: string) {
   const path = `${stacksApi}/extended/v1/contract/${contract_id}`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
-export async function isConstructed(stacksApi: string, contract_id: string) {
+export async function isConstructed(stacksApi: string, contract_id: string, stacksHiroKey?: string) {
   const path = `${stacksApi}/extended/v1/contract/${contract_id}`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
-export async function fetchStacksInfo(stacksApi: string) {
+export async function fetchStacksInfo(stacksApi: string, stacksHiroKey?: string) {
   const path = `${stacksApi}/v2/info`;
-  const response = await fetch(path);
+  const response = await fetch(path, {
+    headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+  });
   const res = await response.json();
   return res;
 }
-export async function getTokenBalances(stacksApi: string, principal: string): Promise<TokenBalances> {
+export async function getTokenBalances(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<TokenBalances> {
   const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
-  const response = await fetch(path);
+  const response = await fetch(path, {
+    headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+  });
   const res = await response.json();
   return res;
 }
 
-export async function callContractReadOnly(stacksApi: string, data: any) {
+export async function callContractReadOnly(stacksApi: string, data: any, stacksHiroKey?: string) {
   let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
   if (data.tip) {
     url += "?tip=" + data.tip;
@@ -163,12 +171,11 @@ export async function callContractReadOnly(stacksApi: string, data: any) {
   let val;
   try {
     console.log("callContractReadOnly: url: ", url);
-    const hiroApi1 = "ae4ecb7b39e8fbc0326091ddac461bc6";
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-hiro-api-key": hiroApi1,
+        ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}),
       },
       body: JSON.stringify({
         arguments: data.functionArgs,
@@ -188,9 +195,11 @@ export async function callContractReadOnly(stacksApi: string, data: any) {
   }
 }
 
-export async function getStacksHeightFromBurnBlockHeight(stacksApi: string, burnHeight: number): Promise<number> {
+export async function getStacksHeightFromBurnBlockHeight(stacksApi: string, burnHeight: number, stacksHiroKey?: string): Promise<number> {
   let url = `${stacksApi}/extended/v2/burn-blocks/${burnHeight}/blocks`;
-  let response = await fetch(url);
+  let response = await fetch(url, {
+    headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+  });
   if (response.status !== 200) {
     return -1; // burn height in future.
   }
@@ -200,13 +209,15 @@ export async function getStacksHeightFromBurnBlockHeight(stacksApi: string, burn
   return val.results[0].height;
 }
 
-export async function getFirstStacksBlock(stacksApi: string, burnBlockHeight: number) {
+export async function getFirstStacksBlock(stacksApi: string, burnBlockHeight: number, stacksHiroKey?: string) {
   let stacksBlock = null;
   let currentBurnBlock = burnBlockHeight;
 
   while (!stacksBlock) {
     const url = `${stacksApi}/extended/v2/burn-blocks/${currentBurnBlock}/blocks`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+    });
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
@@ -224,14 +235,14 @@ export async function getFirstStacksBlock(stacksApi: string, burnBlockHeight: nu
   }
 }
 
-export async function getPoxInfo(stacksApi: string): Promise<PoxInfo> {
+export async function getPoxInfo(stacksApi: string, stacksHiroKey?: string): Promise<PoxInfo> {
   const path = `${stacksApi}/v2/pox`;
   const response = await fetch(path);
   const res = await response.json();
   return res;
 }
 
-export async function getSip10Properties(stacksApi: string, token: TokenPermissionEvent, owner?: string) {
+export async function getSip10Properties(stacksApi: string, token: TokenPermissionEvent, owner?: string, stacksHiroKey?: string) {
   let p = await getSip10Property(stacksApi, token, "get-symbol");
   let symbol = p;
   p = await getSip10Property(stacksApi, token, "get-name");
@@ -257,7 +268,7 @@ export async function getSip10Properties(stacksApi: string, token: TokenPermissi
   };
 }
 
-export async function getSip10Balance(stacksApi: string, token: TokenPermissionEvent, owner: string): Promise<any> {
+export async function getSip10Balance(stacksApi: string, token: TokenPermissionEvent, owner: string, stacksHiroKey?: string): Promise<any> {
   const functionArgs: Array<any> = [`0x${serializeCV(Cl.principal(owner))}`];
   const data = {
     contractAddress: token.token.split(".")[0],
@@ -265,11 +276,11 @@ export async function getSip10Balance(stacksApi: string, token: TokenPermissionE
     functionName: "get-balance",
     functionArgs,
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return result?.value?.value || "get-balance";
 }
 
-export async function getSip10Property(stacksApi: string, token: TokenPermissionEvent, functionName: string): Promise<any> {
+export async function getSip10Property(stacksApi: string, token: TokenPermissionEvent, functionName: string, stacksHiroKey?: string): Promise<any> {
   const functionArgs: Array<any> = [];
   const data = {
     contractAddress: token.token.split(".")[0],
@@ -277,6 +288,6 @@ export async function getSip10Property(stacksApi: string, token: TokenPermission
     functionName,
     functionArgs,
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return result?.value?.value || functionName;
 }

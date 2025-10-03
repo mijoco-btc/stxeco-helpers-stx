@@ -12,5 +12,5 @@ export type TokenSale = {
     currentStageStart: number;
     currentStage: number;
 };
-export declare function fetchTokenSaleStages(stacksApi: string, contractAddress: string, contractName: string): Promise<TokenSale>;
-export declare function fetchTokenSaleUserData(stacksApi: string, contractAddress: string, contractName: string, user: string, stage?: number): Promise<Array<TokenSalePurchase> | TokenSalePurchase>;
+export declare function fetchTokenSaleStages(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<TokenSale>;
+export declare function fetchTokenSaleUserData(stacksApi: string, contractAddress: string, contractName: string, user: string, stage?: number, stacksHiroKey?: string): Promise<Array<TokenSalePurchase> | TokenSalePurchase>;

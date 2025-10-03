@@ -23,7 +23,7 @@ exports.fetchWeightedSupply = fetchWeightedSupply;
 const transactions_1 = require("@stacks/transactions");
 const stacks_node_1 = require("../stacks-node");
 const predictions_1 = require("../predictions");
-function readReputationContractData(stacksApi, contractAddress, contractName) {
+function readReputationContractData(stacksApi, contractAddress, contractName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let rewardPerEpoch = yield (0, predictions_1.extractValue)(stacksApi, contractAddress, contractName, "reward-per-epoch");
         let overallSupply = yield (0, predictions_1.extractValue)(stacksApi, contractAddress, contractName, "overall-supply");
@@ -44,7 +44,7 @@ function readReputationContractData(stacksApi, contractAddress, contractName) {
 /**
  * Note: in practice this is read from event data in mongo @see function getUserReputationContractData(address: string)
  */
-function readUserReputationContractData(stacksApi, contractAddress, contractName, address) {
+function readUserReputationContractData(stacksApi, contractAddress, contractName, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         return {
             balances: yield fetchBalances(stacksApi, contractAddress, contractName, address),
@@ -99,7 +99,7 @@ exports.BigRepTierMetadata = {
     //   [BigRepTier.Founder]: { label: "Founder", weight: 21 },
     //   [BigRepTier.ExecutiveLead]: { label: "Executive DAO Lead", weight: 21 },
 };
-function fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tier) {
+function fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tier, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const data = {
@@ -108,17 +108,17 @@ function fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, t
             functionName: "get-balance",
             functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(tier))}`, `0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         console.log("fetchBalanceAtTier: tier: " + tier, result);
         return Number(((_a = result.value) === null || _a === void 0 ? void 0 : _a.value) || 0);
     });
 }
-function fetchBalances(stacksApi, contractAddress, contractName, address) {
+function fetchBalances(stacksApi, contractAddress, contractName, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const supplies = [];
         for (let tokenId = 1; tokenId <= 10; tokenId++) {
             try {
-                const value = yield fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tokenId);
+                const value = yield fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tokenId, stacksHiroKey);
                 supplies.push(Number(value));
             }
             catch (err) {
@@ -129,7 +129,7 @@ function fetchBalances(stacksApi, contractAddress, contractName, address) {
         return supplies;
     });
 }
-function fetchOverallBalance(stacksApi, contractAddress, contractName, address) {
+function fetchOverallBalance(stacksApi, contractAddress, contractName, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const data = {
@@ -138,11 +138,11 @@ function fetchOverallBalance(stacksApi, contractAddress, contractName, address) 
             functionName: "get-overall-balance",
             functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         return Number(((_a = result.value) === null || _a === void 0 ? void 0 : _a.value) || 0);
     });
 }
-function fetchWeightedReputation(stacksApi, contractAddress, contractName, address) {
+function fetchWeightedReputation(stacksApi, contractAddress, contractName, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const data = {
@@ -151,11 +151,11 @@ function fetchWeightedReputation(stacksApi, contractAddress, contractName, addre
             functionName: "get-weighted-rep",
             functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         return Number(((_a = result.value) === null || _a === void 0 ? void 0 : _a.value) || 0);
     });
 }
-function fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address) {
+function fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const data = {
@@ -164,11 +164,11 @@ function fetchLastEpochClaimed(stacksApi, contractAddress, contractName, address
             functionName: "get-last-claimed-epoch",
             functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.principalCV)(address))}`],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         return Number(((_a = result.value) === null || _a === void 0 ? void 0 : _a.value) || 0);
     });
 }
-function fetchCurrentEpoch(stacksApi, contractAddress, contractName) {
+function fetchCurrentEpoch(stacksApi, contractAddress, contractName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const data = {
             contractAddress,
@@ -177,12 +177,12 @@ function fetchCurrentEpoch(stacksApi, contractAddress, contractName) {
             functionArgs: [],
             // functionArgs: [`0x${serializeCV(principalCV(marketContract))}`, `0x${serializeCV(uintCV(marketId))}`]
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         console.log("fetchCurrentEpoch: ", result);
         return Number(result.value || "0");
     });
 }
-function fetchTotalSupplies(stacksApi, contractAddress, contractName) {
+function fetchTotalSupplies(stacksApi, contractAddress, contractName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const supplies = [];
@@ -194,7 +194,7 @@ function fetchTotalSupplies(stacksApi, contractAddress, contractName) {
                 functionArgs: [`0x${(0, transactions_1.serializeCV)((0, transactions_1.uintCV)(tokenId))}`], // SIP-013 total supply takes token-id as argument
             };
             try {
-                const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+                const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
                 const value = (_a = result === null || result === void 0 ? void 0 : result.value) === null || _a === void 0 ? void 0 : _a.value;
                 supplies.push(Number(value));
             }
@@ -206,7 +206,7 @@ function fetchTotalSupplies(stacksApi, contractAddress, contractName) {
         return supplies;
     });
 }
-function fetchWeightedSupply(stacksApi, contractAddress, contractName) {
+function fetchWeightedSupply(stacksApi, contractAddress, contractName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const data = {
             contractAddress: contractAddress,
@@ -214,11 +214,11 @@ function fetchWeightedSupply(stacksApi, contractAddress, contractName) {
             functionName: "get-weighted-supply",
             functionArgs: [],
         };
-        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+        const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
         return result.value.value;
     });
 }
-// async function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string) {
+// async function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string, stacksHiroKey?: string) {
 //   try {
 //     let token = await fetchDataVar(stacksApi, contractAddress, contractName, varName);
 //     if (token.data && token.data === "0x04") return false;

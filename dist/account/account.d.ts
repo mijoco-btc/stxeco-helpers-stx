@@ -1,9 +1,9 @@
 import { AddressObject, ExchangeRate, SbtcUserSettingI } from "../sbtc";
 import * as btc from "@scure/btc-signer";
-export declare function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string): Promise<AddressObject>;
+export declare function getBalances(stacksApi: string, mempoolApi: string, contractId: string, stxAddress: string, cardinal: string, ordinal: string, stacksHiroKey?: string): Promise<AddressObject>;
 export declare function isSTX(token: string): boolean;
-export declare function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number): Promise<number>;
-export declare function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string): Promise<number>;
+export declare function fullBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number, stacksHiroKey?: string): Promise<number>;
+export declare function fullBalanceInSip10Token(stacksApi: string, stxAddress: string, tokenContract: string, stacksHiroKey?: string): Promise<number>;
 export declare function appDetails(): {
     name: string;
     icon: string;

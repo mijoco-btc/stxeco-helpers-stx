@@ -57,14 +57,8 @@ const account_1 = require("../account");
 const btc = __importStar(require("@scure/btc-signer"));
 const stacks_node_1 = require("../stacks-node");
 const limit = 10;
-const noArgMethods = [
-    "get-bitcoin-wallet-public-key",
-    "get-token-uri",
-    "get-total-supply",
-    "get-decimals",
-    "get-name",
-];
-function fetchNoArgsReadOnly(stacksApi, network, contractId) {
+const noArgMethods = ["get-bitcoin-wallet-public-key", "get-token-uri", "get-total-supply", "get-decimals", "get-name"];
+function fetchNoArgsReadOnly(stacksApi, network, contractId, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = {};
         if (!contractId || contractId.length === 0)
@@ -82,7 +76,7 @@ function fetchNoArgsReadOnly(stacksApi, network, contractId) {
             let response;
             try {
                 data.functionName = funcname;
-                response = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+                response = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
                 resolveArg(network, result, response, funcname);
             }
             catch (err) {
@@ -148,7 +142,7 @@ function resolveArg(network, result, response, arg) {
             break;
     }
 }
-function fetchSbtcWalletAddress(stacksApi, network, contractId) {
+function fetchSbtcWalletAddress(stacksApi, network, contractId, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             if (!contractId || contractId.length === 0)
@@ -160,7 +154,7 @@ function fetchSbtcWalletAddress(stacksApi, network, contractId) {
                 functionArgs: [],
                 network,
             };
-            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
             if (result.value && result.value.value) {
                 return result.value.value;
             }
@@ -175,7 +169,7 @@ function fetchSbtcWalletAddress(stacksApi, network, contractId) {
         }
     });
 }
-function fetchUserSbtcBalance(stacksApi, network, contractId, stxAddress) {
+function fetchUserSbtcBalance(stacksApi, network, contractId, stxAddress, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             if (!contractId || contractId.length === 0)
@@ -188,7 +182,7 @@ function fetchUserSbtcBalance(stacksApi, network, contractId, stxAddress) {
                 functionArgs,
                 network,
             };
-            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data);
+            const result = yield (0, stacks_node_1.callContractReadOnly)(stacksApi, data, stacksHiroKey);
             if (result.value && result.value.value) {
                 return { balance: Number(result.value.value) };
             }
@@ -199,7 +193,7 @@ function fetchUserSbtcBalance(stacksApi, network, contractId, stxAddress) {
         }
     });
 }
-function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal) {
+function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const userBalances = {};
         userBalances.stxAddress = stxAddress;
@@ -211,7 +205,9 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
             //checkAddressForNetwork(getConfig().network, ordinal)
             if (userBalances.stxAddress) {
                 const url = `${stacksApi}/extended/v1/address/${userBalances.stxAddress}/balances`;
-                const response = yield fetch(url);
+                const response = yield fetch(url, {
+                    headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+                });
                 const result = yield response.json();
                 userBalances.tokenBalances = result;
             }
@@ -222,7 +218,9 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
         // fetch bns info
         try {
             const url = `${stacksApi}/v1/addresses/stacks/${stxAddress}`;
-            const response = yield fetch(url);
+            const response = yield fetch(url, {
+                headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+            });
             const result = yield response.json();
             userBalances.bnsNameInfo = result;
         }
@@ -249,10 +247,12 @@ function fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal)
         return userBalances;
     });
 }
-function fetchAddress(mempoolUrl, address) {
+function fetchAddress(mempoolUrl, address, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${mempoolUrl}/address/${address}`;
-        const response = yield fetch(url);
+        const response = yield fetch(url, {
+            headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+        });
         const result = yield response.json();
         return result;
     });

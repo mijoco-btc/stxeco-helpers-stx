@@ -64,7 +64,7 @@ const c32check_1 = require("c32check");
 const custom_node_1 = require("../custom-node");
 const stacks_node_1 = require("../stacks-node");
 const btc = __importStar(require("@scure/btc-signer"));
-function getBalances(stacksApi, mempoolApi, contractId, stxAddress, cardinal, ordinal) {
+function getBalances(stacksApi, mempoolApi, contractId, stxAddress, cardinal, ordinal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         let result = {};
@@ -87,7 +87,7 @@ function getBalances(stacksApi, mempoolApi, contractId, stxAddress, cardinal, or
 function isSTX(token) {
     return token.indexOf("stx") > -1;
 }
-function fullBalanceAtHeight(stacksApi, stxAddress, height) {
+function fullBalanceAtHeight(stacksApi, stxAddress, height, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         let totalBalanceAtHeight = 0;
@@ -102,7 +102,7 @@ function fullBalanceAtHeight(stacksApi, stxAddress, height) {
         return totalBalanceAtHeight;
     });
 }
-function fullBalanceInSip10Token(stacksApi, stxAddress, tokenContract) {
+function fullBalanceInSip10Token(stacksApi, stxAddress, tokenContract, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let totalBalanceAtHeight = 0;
         try {

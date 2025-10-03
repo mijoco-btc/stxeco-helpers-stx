@@ -30,7 +30,7 @@ exports.getSip10Balance = getSip10Balance;
 exports.getSip10Property = getSip10Property;
 const transactions_1 = require("@stacks/transactions");
 const network_1 = require("@stacks/network");
-function fetchContractAssets(stacksApi, principal) {
+function fetchContractAssets(stacksApi, principal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/assets`;
         const response = yield fetch(path);
@@ -38,7 +38,7 @@ function fetchContractAssets(stacksApi, principal) {
         return res;
     });
 }
-function fetchSip10(stacksApi, principal) {
+function fetchSip10(stacksApi, principal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/assets`;
         const response = yield fetch(path);
@@ -46,7 +46,7 @@ function fetchSip10(stacksApi, principal) {
         return res;
     });
 }
-function fetchContractBalances(stacksApi, principal) {
+function fetchContractBalances(stacksApi, principal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
         const response = yield fetch(path);
@@ -54,7 +54,7 @@ function fetchContractBalances(stacksApi, principal) {
         return res;
     });
 }
-function fetchContractStxBalance(stacksApi, principal) {
+function fetchContractStxBalance(stacksApi, principal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/stx`;
         const response = yield fetch(path);
@@ -62,12 +62,14 @@ function fetchContractStxBalance(stacksApi, principal) {
         return res;
     });
 }
-function getTransaction(stacksApi, tx) {
+function getTransaction(stacksApi, tx, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${stacksApi}/extended/v1/tx/${tx}`;
         let val;
         try {
-            const response = yield fetch(url);
+            const response = yield fetch(url, {
+                headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+            });
             val = yield response.json();
         }
         catch (err) {
@@ -76,12 +78,14 @@ function getTransaction(stacksApi, tx) {
         return val;
     });
 }
-function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
+function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             //checkAddressForNetwork(getConfig().network, contractAddress)
             const url = `${stacksApi}/v2/data_var/${contractAddress}/${contractName}/${dataVarName}`;
-            const response = yield fetch(url);
+            const response = yield fetch(url, {
+                headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+            });
             const result = yield response.json();
             return result;
         }
@@ -90,14 +94,14 @@ function fetchDataVar(stacksApi, contractAddress, contractName, dataVarName) {
         }
     });
 }
-function fetchMapEntry(stacksApi, contractAddress, contractName, mapName, lookupKey) {
+function fetchMapEntry(stacksApi, contractAddress, contractName, mapName, lookupKey, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             //checkAddressForNetwork(getConfig().network, contractAddress)
             const url = `${stacksApi}/v2/map_entry/${contractAddress}/${contractName}/${mapName}`;
             const response = yield fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: "" },
+                headers: Object.assign({ "Content-Type": "application/json", Authorization: "" }, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
                 body: (0, transactions_1.serializeCV)(lookupKey),
             });
             const result = yield response.json();
@@ -128,7 +132,7 @@ function getStacksNetwork(network) {
         stxNetwork = network_1.STACKS_MOCKNET;
     return stxNetwork;
 }
-function lookupContract(stacksApi, contract_id) {
+function lookupContract(stacksApi, contract_id, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/contract/${contract_id}`;
         const response = yield fetch(path);
@@ -136,7 +140,7 @@ function lookupContract(stacksApi, contract_id) {
         return res;
     });
 }
-function isConstructed(stacksApi, contract_id) {
+function isConstructed(stacksApi, contract_id, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/contract/${contract_id}`;
         const response = yield fetch(path);
@@ -144,23 +148,27 @@ function isConstructed(stacksApi, contract_id) {
         return res;
     });
 }
-function fetchStacksInfo(stacksApi) {
+function fetchStacksInfo(stacksApi, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/v2/info`;
-        const response = yield fetch(path);
+        const response = yield fetch(path, {
+            headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+        });
         const res = yield response.json();
         return res;
     });
 }
-function getTokenBalances(stacksApi, principal) {
+function getTokenBalances(stacksApi, principal, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/extended/v1/address/${principal}/balances`;
-        const response = yield fetch(path);
+        const response = yield fetch(path, {
+            headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+        });
         const res = yield response.json();
         return res;
     });
 }
-function callContractReadOnly(stacksApi, data) {
+function callContractReadOnly(stacksApi, data, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let url = `${stacksApi}/v2/contracts/call-read/${data.contractAddress}/${data.contractName}/${data.functionName}`;
         if (data.tip) {
@@ -169,13 +177,9 @@ function callContractReadOnly(stacksApi, data) {
         let val;
         try {
             console.log("callContractReadOnly: url: ", url);
-            const hiroApi1 = "ae4ecb7b39e8fbc0326091ddac461bc6";
             const response = yield fetch(url, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-hiro-api-key": hiroApi1,
-                },
+                headers: Object.assign({ "Content-Type": "application/json" }, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
                 body: JSON.stringify({
                     arguments: data.functionArgs,
                     sender: data.contractAddress,
@@ -196,10 +200,12 @@ function callContractReadOnly(stacksApi, data) {
         }
     });
 }
-function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight) {
+function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let url = `${stacksApi}/extended/v2/burn-blocks/${burnHeight}/blocks`;
-        let response = yield fetch(url);
+        let response = yield fetch(url, {
+            headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+        });
         if (response.status !== 200) {
             return -1; // burn height in future.
         }
@@ -210,13 +216,15 @@ function getStacksHeightFromBurnBlockHeight(stacksApi, burnHeight) {
         return val.results[0].height;
     });
 }
-function getFirstStacksBlock(stacksApi, burnBlockHeight) {
+function getFirstStacksBlock(stacksApi, burnBlockHeight, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let stacksBlock = null;
         let currentBurnBlock = burnBlockHeight;
         while (!stacksBlock) {
             const url = `${stacksApi}/extended/v2/burn-blocks/${currentBurnBlock}/blocks`;
-            const response = yield fetch(url);
+            const response = yield fetch(url, {
+                headers: Object.assign({}, (stacksHiroKey ? { "x-api-key": stacksHiroKey } : {})),
+            });
             const data = yield response.json();
             if (data.results && data.results.length > 0) {
                 stacksBlock = data.results[0]; // Take first Stacks block
@@ -232,7 +240,7 @@ function getFirstStacksBlock(stacksApi, burnBlockHeight) {
         }
     });
 }
-function getPoxInfo(stacksApi) {
+function getPoxInfo(stacksApi, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = `${stacksApi}/v2/pox`;
         const response = yield fetch(path);
@@ -240,7 +248,7 @@ function getPoxInfo(stacksApi) {
         return res;
     });
 }
-function getSip10Properties(stacksApi, token, owner) {
+function getSip10Properties(stacksApi, token, owner, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         let p = yield getSip10Property(stacksApi, token, "get-symbol");
         let symbol = p;
@@ -267,7 +275,7 @@ function getSip10Properties(stacksApi, token, owner) {
         };
     });
 }
-function getSip10Balance(stacksApi, token, owner) {
+function getSip10Balance(stacksApi, token, owner, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const functionArgs = [`0x${(0, transactions_1.serializeCV)(transactions_1.Cl.principal(owner))}`];
@@ -277,11 +285,11 @@ function getSip10Balance(stacksApi, token, owner) {
             functionName: "get-balance",
             functionArgs,
         };
-        const result = yield callContractReadOnly(stacksApi, data);
+        const result = yield callContractReadOnly(stacksApi, data, stacksHiroKey);
         return ((_a = result === null || result === void 0 ? void 0 : result.value) === null || _a === void 0 ? void 0 : _a.value) || "get-balance";
     });
 }
-function getSip10Property(stacksApi, token, functionName) {
+function getSip10Property(stacksApi, token, functionName, stacksHiroKey) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const functionArgs = [];
@@ -291,7 +299,7 @@ function getSip10Property(stacksApi, token, functionName) {
             functionName,
             functionArgs,
         };
-        const result = yield callContractReadOnly(stacksApi, data);
+        const result = yield callContractReadOnly(stacksApi, data, stacksHiroKey);
         return ((_a = result === null || result === void 0 ? void 0 : result.value) === null || _a === void 0 ? void 0 : _a.value) || functionName;
     });
 }

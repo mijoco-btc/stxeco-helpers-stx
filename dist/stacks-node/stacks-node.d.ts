@@ -23,8 +23,8 @@ export type StacksAsset = {
         amount: string;
     };
 };
-export declare function fetchContractAssets(stacksApi: string, principal: string): Promise<ContractAssets>;
-export declare function fetchSip10(stacksApi: string, principal: string): Promise<ContractAssets>;
+export declare function fetchContractAssets(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractAssets>;
+export declare function fetchSip10(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractAssets>;
 export type ContractBalances = {
     fungible_tokens: any;
     non_fungible_tokens: any;
@@ -43,26 +43,26 @@ export type ContractStxBalance = {
     total_received: string;
     total_sent: string;
 };
-export declare function fetchContractBalances(stacksApi: string, principal: string): Promise<ContractBalances>;
-export declare function fetchContractStxBalance(stacksApi: string, principal: string): Promise<ContractStxBalance>;
-export declare function getTransaction(stacksApi: string, tx: string): Promise<any>;
-export declare function fetchDataVar(stacksApi: string, contractAddress: string, contractName: string, dataVarName: string): Promise<any>;
-export declare function fetchMapEntry(stacksApi: string, contractAddress: string, contractName: string, mapName: string, lookupKey: ClarityValue): Promise<any>;
+export declare function fetchContractBalances(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractBalances>;
+export declare function fetchContractStxBalance(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<ContractStxBalance>;
+export declare function getTransaction(stacksApi: string, tx: string, stacksHiroKey?: string): Promise<any>;
+export declare function fetchDataVar(stacksApi: string, contractAddress: string, contractName: string, dataVarName: string, stacksHiroKey?: string): Promise<any>;
+export declare function fetchMapEntry(stacksApi: string, contractAddress: string, contractName: string, mapName: string, lookupKey: ClarityValue, stacksHiroKey?: string): Promise<any>;
 export declare function getStacksNetwork(network: string): import("@stacks/network").StacksNetwork;
-export declare function lookupContract(stacksApi: string, contract_id: string): Promise<any>;
-export declare function isConstructed(stacksApi: string, contract_id: string): Promise<any>;
-export declare function fetchStacksInfo(stacksApi: string): Promise<any>;
-export declare function getTokenBalances(stacksApi: string, principal: string): Promise<TokenBalances>;
-export declare function callContractReadOnly(stacksApi: string, data: any): Promise<any>;
-export declare function getStacksHeightFromBurnBlockHeight(stacksApi: string, burnHeight: number): Promise<number>;
-export declare function getFirstStacksBlock(stacksApi: string, burnBlockHeight: number): Promise<{
+export declare function lookupContract(stacksApi: string, contract_id: string, stacksHiroKey?: string): Promise<any>;
+export declare function isConstructed(stacksApi: string, contract_id: string, stacksHiroKey?: string): Promise<any>;
+export declare function fetchStacksInfo(stacksApi: string, stacksHiroKey?: string): Promise<any>;
+export declare function getTokenBalances(stacksApi: string, principal: string, stacksHiroKey?: string): Promise<TokenBalances>;
+export declare function callContractReadOnly(stacksApi: string, data: any, stacksHiroKey?: string): Promise<any>;
+export declare function getStacksHeightFromBurnBlockHeight(stacksApi: string, burnHeight: number, stacksHiroKey?: string): Promise<number>;
+export declare function getFirstStacksBlock(stacksApi: string, burnBlockHeight: number, stacksHiroKey?: string): Promise<{
     stacksHeight: any;
     stacksHash: any;
     indexHash: any;
     burnBlockHeight: any;
 } | undefined>;
-export declare function getPoxInfo(stacksApi: string): Promise<PoxInfo>;
-export declare function getSip10Properties(stacksApi: string, token: TokenPermissionEvent, owner?: string): Promise<{
+export declare function getPoxInfo(stacksApi: string, stacksHiroKey?: string): Promise<PoxInfo>;
+export declare function getSip10Properties(stacksApi: string, token: TokenPermissionEvent, owner?: string, stacksHiroKey?: string): Promise<{
     symbol: any;
     name: any;
     tokenUri: any;
@@ -70,5 +70,5 @@ export declare function getSip10Properties(stacksApi: string, token: TokenPermis
     totalSupply: number;
     balance: number;
 }>;
-export declare function getSip10Balance(stacksApi: string, token: TokenPermissionEvent, owner: string): Promise<any>;
-export declare function getSip10Property(stacksApi: string, token: TokenPermissionEvent, functionName: string): Promise<any>;
+export declare function getSip10Balance(stacksApi: string, token: TokenPermissionEvent, owner: string, stacksHiroKey?: string): Promise<any>;
+export declare function getSip10Property(stacksApi: string, token: TokenPermissionEvent, functionName: string, stacksHiroKey?: string): Promise<any>;

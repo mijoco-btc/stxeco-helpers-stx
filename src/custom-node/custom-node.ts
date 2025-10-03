@@ -1,20 +1,8 @@
 import { AddressMempoolObject, WalletBalances } from "../sbtc";
 import { fetchUserBalances } from "../sbtc-contract";
 
-export async function getWalletBalances(
-  stacksApi: string,
-  mempoolApi: string,
-  stxAddress: string,
-  cardinal: string,
-  ordinal: string
-): Promise<WalletBalances> {
-  const rawBal = await fetchUserBalances(
-    stacksApi,
-    mempoolApi,
-    stxAddress,
-    cardinal,
-    ordinal
-  );
+export async function getWalletBalances(stacksApi: string, mempoolApi: string, stxAddress: string, cardinal: string, ordinal: string, stacksHiroKey?: string): Promise<WalletBalances> {
+  const rawBal = await fetchUserBalances(stacksApi, mempoolApi, stxAddress, cardinal, ordinal);
   return {
     stacks: {
       address: stxAddress,
@@ -31,21 +19,12 @@ export async function getWalletBalances(
   };
 }
 
-function extractBtcBalance(
-  addressMempoolObject: AddressMempoolObject | undefined
-) {
+function extractBtcBalance(addressMempoolObject: AddressMempoolObject | undefined) {
   if (!addressMempoolObject) return 0;
-  return (
-    addressMempoolObject?.chain_stats?.funded_txo_sum -
-      addressMempoolObject.chain_stats.spent_txo_sum || 0
-  );
+  return addressMempoolObject?.chain_stats?.funded_txo_sum - addressMempoolObject.chain_stats.spent_txo_sum || 0;
 }
 
-export async function getBalanceAtHeight(
-  stacksApi: string,
-  stxAddress: string,
-  height?: number
-): Promise<any> {
+export async function getBalanceAtHeight(stacksApi: string, stxAddress: string, height?: number, stacksHiroKey?: string): Promise<any> {
   if (!stxAddress)
     return {
       stx: {
@@ -57,7 +36,9 @@ export async function getBalanceAtHeight(
   if (height) url += `?until_block=${height}`;
   let val;
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...(stacksHiroKey ? { "x-api-key": stacksHiroKey } : {}) },
+    });
     val = await response.json();
   } catch (err) {
     console.log("getBalanceAtHeight: ", err);

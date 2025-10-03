@@ -29,6 +29,6 @@ export type PredictionContractData = {
     customMajority: number;
     creationGated: boolean;
 };
-export declare function fetchResolutionVote(stacksApi: string, marketContract: string, marketId: number, contractAddress: string, contractName: string): Promise<ResolutionVote>;
-export declare function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string): Promise<any>;
-export declare function readPredictionContractData(stacksApi: string, contractAddress: string, contractName: string): Promise<PredictionContractData>;
+export declare function fetchResolutionVote(stacksApi: string, marketContract: string, marketId: number, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<ResolutionVote>;
+export declare function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string, stacksHiroKey?: string): Promise<any>;
+export declare function readPredictionContractData(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<PredictionContractData>;

@@ -82,7 +82,7 @@ export type OpinionPoll = {
   };
 };
 
-export async function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string): Promise<MarketData | undefined> {
+export async function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<MarketData | undefined> {
   let sbtcContract = stacksApi.indexOf("localhost") > -1 ? "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc" : "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token";
   const data = {
     contractAddress,
@@ -92,7 +92,7 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
   };
   try {
     const type2 = contractName.indexOf("scalar") > -1;
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     let categories;
     if (!type2) {
       categories = result.value.value["categories"].value.map((item: any) => item.value);
@@ -142,7 +142,7 @@ export async function fetchMarketData(stacksApi: string, marketId: number, contr
   }
 }
 
-export async function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string): Promise<number> {
+export async function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<number> {
   const data = {
     contractAddress,
     contractName,
@@ -150,7 +150,7 @@ export async function getCostPerShare(stacksApi: string, marketId: number, outco
     functionArgs: [`0x${serializeCV(uintCV(marketId))}`, typeof outcome === "string" ? `0x${serializeCV(stringAsciiCV(outcome))}` : `0x${serializeCV(uintCV(outcome))}`, `0x${serializeCV(uintCV(amount))}`],
   };
   try {
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     return result.value.value.cost.value;
   } catch (err: any) {
     return -1;
@@ -161,7 +161,7 @@ export type UserStake = {
   stakes: Array<number>;
 };
 
-export async function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined> {
+export async function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string, stacksHiroKey?: string): Promise<UserStake | undefined> {
   try {
     const data = {
       contractAddress,
@@ -169,7 +169,7 @@ export async function fetchUserStake(stacksApi: string, marketId: number, contra
       functionName: "get-stake-balances",
       functionArgs: [`0x${serializeCV(uintCV(marketId))}`, `0x${serializeCV(principalCV(user))}`],
     };
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     const stakes = result.value?.value.map((item: any) => Number(item.value)) || undefined;
     if (!result.value) return;
     return {
@@ -180,7 +180,7 @@ export async function fetchUserStake(stacksApi: string, marketId: number, contra
   }
 }
 
-export async function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined> {
+export async function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string, stacksHiroKey?: string): Promise<UserStake | undefined> {
   try {
     const data = {
       contractAddress,
@@ -188,7 +188,7 @@ export async function fetchUserTokens(stacksApi: string, marketId: number, contr
       functionName: "get-token-balances",
       functionArgs: [`0x${serializeCV(uintCV(marketId))}`, `0x${serializeCV(principalCV(user))}`],
     };
-    const result = await callContractReadOnly(stacksApi, data);
+    const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
     const stakes = result.value?.value.map((item: any) => Number(item.value)) || undefined;
     if (!result.value) return;
     return {

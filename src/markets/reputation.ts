@@ -2,7 +2,7 @@ import { principalCV, serializeCV, uintCV } from "@stacks/transactions";
 import { callContractReadOnly } from "../stacks-node";
 import { extractValue } from "../predictions";
 
-export async function readReputationContractData(stacksApi: string, contractAddress: string, contractName: string): Promise<ReputationContractData> {
+export async function readReputationContractData(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<ReputationContractData> {
   let rewardPerEpoch = await extractValue(stacksApi, contractAddress, contractName, "reward-per-epoch");
   let overallSupply = await extractValue(stacksApi, contractAddress, contractName, "overall-supply");
   let tokenName = await extractValue(stacksApi, contractAddress, contractName, "token-name");
@@ -23,7 +23,7 @@ export async function readReputationContractData(stacksApi: string, contractAddr
 /**
  * Note: in practice this is read from event data in mongo @see function getUserReputationContractData(address: string)
  */
-export async function readUserReputationContractData(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<UserReputationContractData> {
+export async function readUserReputationContractData(stacksApi: string, contractAddress: string, contractName: string, address: string, stacksHiroKey?: string): Promise<UserReputationContractData> {
   return {
     balances: await fetchBalances(stacksApi, contractAddress, contractName, address),
     overallBalance: await fetchOverallBalance(stacksApi, contractAddress, contractName, address),
@@ -101,23 +101,23 @@ export const BigRepTierMetadata: Record<BigRepTier, { label: string; weight: num
   //   [BigRepTier.ExecutiveLead]: { label: "Executive DAO Lead", weight: 21 },
 };
 
-export async function fetchBalanceAtTier(stacksApi: string, contractAddress: string, contractName: string, address: string, tier: number): Promise<number> {
+export async function fetchBalanceAtTier(stacksApi: string, contractAddress: string, contractName: string, address: string, tier: number, stacksHiroKey?: string): Promise<number> {
   const data = {
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-balance",
     functionArgs: [`0x${serializeCV(uintCV(tier))}`, `0x${serializeCV(principalCV(address))}`],
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   console.log("fetchBalanceAtTier: tier: " + tier, result);
   return Number(result.value?.value || 0);
 }
-export async function fetchBalances(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<number[]> {
+export async function fetchBalances(stacksApi: string, contractAddress: string, contractName: string, address: string, stacksHiroKey?: string): Promise<number[]> {
   const supplies: number[] = [];
 
   for (let tokenId = 1; tokenId <= 10; tokenId++) {
     try {
-      const value = await fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tokenId);
+      const value = await fetchBalanceAtTier(stacksApi, contractAddress, contractName, address, tokenId, stacksHiroKey);
       supplies.push(Number(value));
     } catch (err) {
       console.error(`Failed to fetch supply for tokenId ${tokenId}:`, err);
@@ -127,40 +127,40 @@ export async function fetchBalances(stacksApi: string, contractAddress: string, 
   return supplies;
 }
 
-export async function fetchOverallBalance(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any> {
+export async function fetchOverallBalance(stacksApi: string, contractAddress: string, contractName: string, address: string, stacksHiroKey?: string): Promise<any> {
   const data = {
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-overall-balance",
     functionArgs: [`0x${serializeCV(principalCV(address))}`],
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return Number(result.value?.value || 0);
 }
 
-export async function fetchWeightedReputation(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any> {
+export async function fetchWeightedReputation(stacksApi: string, contractAddress: string, contractName: string, address: string, stacksHiroKey?: string): Promise<any> {
   const data = {
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-weighted-rep",
     functionArgs: [`0x${serializeCV(principalCV(address))}`],
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return Number(result.value?.value || 0);
 }
 
-export async function fetchLastEpochClaimed(stacksApi: string, contractAddress: string, contractName: string, address: string): Promise<any> {
+export async function fetchLastEpochClaimed(stacksApi: string, contractAddress: string, contractName: string, address: string, stacksHiroKey?: string): Promise<any> {
   const data = {
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-last-claimed-epoch",
     functionArgs: [`0x${serializeCV(principalCV(address))}`],
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return Number(result.value?.value || 0);
 }
 
-export async function fetchCurrentEpoch(stacksApi: string, contractAddress: string, contractName: string): Promise<any> {
+export async function fetchCurrentEpoch(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<any> {
   const data = {
     contractAddress,
     contractName,
@@ -168,12 +168,12 @@ export async function fetchCurrentEpoch(stacksApi: string, contractAddress: stri
     functionArgs: [],
     // functionArgs: [`0x${serializeCV(principalCV(marketContract))}`, `0x${serializeCV(uintCV(marketId))}`]
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   console.log("fetchCurrentEpoch: ", result);
   return Number(result.value || "0");
 }
 
-export async function fetchTotalSupplies(stacksApi: string, contractAddress: string, contractName: string): Promise<number[]> {
+export async function fetchTotalSupplies(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<number[]> {
   const supplies: number[] = [];
 
   for (let tokenId = 1; tokenId <= 10; tokenId++) {
@@ -185,7 +185,7 @@ export async function fetchTotalSupplies(stacksApi: string, contractAddress: str
     };
 
     try {
-      const result = await callContractReadOnly(stacksApi, data);
+      const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
       const value = result?.value?.value;
       supplies.push(Number(value));
     } catch (err) {
@@ -197,18 +197,18 @@ export async function fetchTotalSupplies(stacksApi: string, contractAddress: str
   return supplies;
 }
 
-export async function fetchWeightedSupply(stacksApi: string, contractAddress: string, contractName: string): Promise<any> {
+export async function fetchWeightedSupply(stacksApi: string, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<any> {
   const data = {
     contractAddress: contractAddress,
     contractName: contractName,
     functionName: "get-weighted-supply",
     functionArgs: [],
   };
-  const result = await callContractReadOnly(stacksApi, data);
+  const result = await callContractReadOnly(stacksApi, data, stacksHiroKey);
   return result.value.value;
 }
 
-// async function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string) {
+// async function extractValue(stacksApi: string, contractAddress: string, contractName: string, varName: string, stacksHiroKey?: string) {
 //   try {
 //     let token = await fetchDataVar(stacksApi, contractAddress, contractName, varName);
 

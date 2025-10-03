@@ -75,13 +75,13 @@ export type OpinionPoll = {
         };
     };
 };
-export declare function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string): Promise<MarketData | undefined>;
-export declare function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string): Promise<number>;
+export declare function fetchMarketData(stacksApi: string, marketId: number, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<MarketData | undefined>;
+export declare function getCostPerShare(stacksApi: string, marketId: number, outcome: number | string, amount: number, contractAddress: string, contractName: string, stacksHiroKey?: string): Promise<number>;
 export type UserStake = {
     stakes: Array<number>;
 };
-export declare function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined>;
-export declare function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string): Promise<UserStake | undefined>;
+export declare function fetchUserStake(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string, stacksHiroKey?: string): Promise<UserStake | undefined>;
+export declare function fetchUserTokens(stacksApi: string, marketId: number, contractAddress: string, contractName: string, user: string, stacksHiroKey?: string): Promise<UserStake | undefined>;
 export type MarketCategoricalOption = {
     label: string;
     displayName?: string;
